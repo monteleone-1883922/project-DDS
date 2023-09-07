@@ -1,5 +1,5 @@
 #
-# OMNeT++/OMNEST Makefile for rete_prova
+# OMNeT++/OMNEST Makefile for rete_test_ale
 #
 # This file was generated with the command:
 #  opp_makemake -f --deep -O out -I.
@@ -7,7 +7,7 @@
 
 # Name of target to be created (-o option)
 TARGET_DIR = .
-TARGET_NAME = rete_prova$(D)
+TARGET_NAME = rete_test_ale$(D)
 TARGET = $(TARGET_NAME)$(EXE_SUFFIX)
 TARGET_IMPLIB = $(TARGET_NAME)$(IMPLIB_SUFFIX)
 TARGET_IMPDEF = $(TARGET_NAME)$(IMPDEF_SUFFIX)
