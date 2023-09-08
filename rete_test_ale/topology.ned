@@ -1,5 +1,7 @@
 network Topology
 {
+    parameters:
+        int numinfected = default(0);
     types:
         channel Link extends ned.DelayChannel{
             delay = 1000ms;

@@ -7,15 +7,14 @@
 using namespace omnetpp;
 
 class process : public cSimpleModule {
-    //std::vector<int> lista;
-private:
-    int *variabile2;
-    int num = 0;
-    int numSubmodules;
-    int myNum;
 
-//public:
-   // process() : variabile2 =  // Inizializzata a 0 per ogni istanza
+private:
+    int *variabile2; //qui vengono salvati tutti i valori ricevuti dagli altri moduli
+    int num = 0; // rappresenta il numero di messaggi inviati
+    int numSubmodules; //rappresenta il numero di moduli nella rete
+    int myNum; //rappresenta il numero randomico scelto dal modulo
+    bool infected = 0; //indica se il modulo è o no infetto
+
 
 protected:
     virtual void initialize() ;
@@ -28,6 +27,7 @@ Define_Module(process);
 
 
 void process::printVector(int id,int* vector, std::string nomeVettore,int numSubmodules){
+    // stampa i valori di un vettore
     std::string vec = "";
     for(int i = 0; i<numSubmodules; i++){
                 vec += std::to_string(vector[i]) + " | ";
