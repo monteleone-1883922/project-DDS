@@ -58,7 +58,10 @@ void process::initialize() {
         IntegerMsg* msg = new IntegerMsg("starter");
         msg->setIntMsg(myNum);
         msg->setSender(getIndex());
+
         send(msg,"gate$o", 0);
+
+
     //}
 }
 void process::handleMessage(cMessage* msg) {
@@ -73,15 +76,22 @@ void process::handleMessage(cMessage* msg) {
         for(int i = 0; i<numSubmodules; i++){
             WATCH(variabile2[i]);
         }
+        IntegerMsg* msg2 = new IntegerMsg("mid");
+        msg2->setIntMsg(myNum);
+        msg2->setSender(getIndex());
         //IntegerMsg* msg2 = my_msg->dup();
         if (num < gateSize("gate")-1){
-            IntegerMsg* msg2 = new IntegerMsg("mid");
-            msg2->setIntMsg(myNum);
-            msg2->setSender(getIndex());
+
             send(msg2, "gate$o",++num);
         }
         else{
-            printVector(getIndex(),variabile2,"variabile2",numSubmodules);
+            if (num < gateSize("gate")){
+                scheduleAt(simTime(),msg2);
+                num++;
+            }
+            else{
+                printVector(getIndex(),variabile2,"variabile2",numSubmodules);
+            }
         }
 
     }
