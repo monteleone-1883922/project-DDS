@@ -33,10 +33,11 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS = $O/process.o $O/int_m.o $O/vector_m.o
+OBJS = $O/process.o $O/infection_m.o $O/int_m.o $O/vector_m.o
 
 # Message files
 MSGFILES = \
+    infection.msg \
     int.msg \
     vector.msg
 

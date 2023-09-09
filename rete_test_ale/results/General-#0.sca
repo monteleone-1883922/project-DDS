@@ -1,8 +1,8 @@
 version 3
-run General-0-20230908-15:40:37-11996
+run General-0-20230909-19:26:43-21332
 attr configname General
-attr datetime 20230908-15:40:37
-attr datetimef 20230908-154037
+attr datetime 20230909-19:26:43
+attr datetimef 20230909-192643
 attr experiment General
 attr inifile omnetpp.ini
 attr iterationvars ""
@@ -10,12 +10,13 @@ attr iterationvarsd ""
 attr iterationvarsf ""
 attr measurement ""
 attr network Topology
-attr processid 11996
+attr processid 21332
 attr repetition 0
 attr replication #0
 attr resultdir results
 attr runnumber 0
 attr seedset 0
+config debug-on-errors true
 config network Topology
 
 par Topology.process[0].gate$o[0].channel typename "\"Topology.Link\""
@@ -95,4 +96,5 @@ par Topology.process[1] typename "\"process\""
 par Topology.process[2] typename "\"process\""
 par Topology.process[3] typename "\"process\""
 par Topology typename "\"Topology\""
+par Topology numinfected 0
 

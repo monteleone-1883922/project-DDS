@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgtool 6.0 from vector.msg.
+// Generated file, do not edit! Created by opp_msgtool 6.0 from infection.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -28,7 +28,7 @@
 #include <sstream>
 #include <memory>
 #include <type_traits>
-#include "vector_m.h"
+#include "infection_m.h"
 
 namespace omnetpp {
 
@@ -150,23 +150,22 @@ void doParsimUnpacking(omnetpp::cCommBuffer *, T& t)
 
 }  // namespace omnetpp
 
-Register_Class(VectorMsg)
+Register_Class(Infection)
 
-VectorMsg::VectorMsg(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
+Infection::Infection(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
 {
 }
 
-VectorMsg::VectorMsg(const VectorMsg& other) : ::omnetpp::cMessage(other)
+Infection::Infection(const Infection& other) : ::omnetpp::cMessage(other)
 {
     copy(other);
 }
 
-VectorMsg::~VectorMsg()
+Infection::~Infection()
 {
-    delete [] this->vector;
 }
 
-VectorMsg& VectorMsg::operator=(const VectorMsg& other)
+Infection& Infection::operator=(const Infection& other)
 {
     if (this == &other) return *this;
     ::omnetpp::cMessage::operator=(other);
@@ -174,126 +173,57 @@ VectorMsg& VectorMsg::operator=(const VectorMsg& other)
     return *this;
 }
 
-void VectorMsg::copy(const VectorMsg& other)
+void Infection::copy(const Infection& other)
 {
-    delete [] this->vector;
-    this->vector = (other.vector_arraysize==0) ? nullptr : new int[other.vector_arraysize];
-    vector_arraysize = other.vector_arraysize;
-    for (size_t i = 0; i < vector_arraysize; i++) {
-        this->vector[i] = other.vector[i];
-    }
-    this->sender = other.sender;
+    this->maxInfectable = other.maxInfectable;
+    this->numInfected = other.numInfected;
 }
 
-void VectorMsg::parsimPack(omnetpp::cCommBuffer *b) const
+void Infection::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::omnetpp::cMessage::parsimPack(b);
-    b->pack(vector_arraysize);
-    doParsimArrayPacking(b,this->vector,vector_arraysize);
-    doParsimPacking(b,this->sender);
+    doParsimPacking(b,this->maxInfectable);
+    doParsimPacking(b,this->numInfected);
 }
 
-void VectorMsg::parsimUnpack(omnetpp::cCommBuffer *b)
+void Infection::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::omnetpp::cMessage::parsimUnpack(b);
-    delete [] this->vector;
-    b->unpack(vector_arraysize);
-    if (vector_arraysize == 0) {
-        this->vector = nullptr;
-    } else {
-        this->vector = new int[vector_arraysize];
-        doParsimArrayUnpacking(b,this->vector,vector_arraysize);
-    }
-    doParsimUnpacking(b,this->sender);
+    doParsimUnpacking(b,this->maxInfectable);
+    doParsimUnpacking(b,this->numInfected);
 }
 
-size_t VectorMsg::getVectorArraySize() const
+int Infection::getMaxInfectable() const
 {
-    return vector_arraysize;
+    return this->maxInfectable;
 }
 
-int VectorMsg::getVector(size_t k) const
+void Infection::setMaxInfectable(int maxInfectable)
 {
-    if (k >= vector_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)vector_arraysize, (unsigned long)k);
-    return this->vector[k];
+    this->maxInfectable = maxInfectable;
 }
 
-void VectorMsg::setVectorArraySize(size_t newSize)
+int Infection::getNumInfected() const
 {
-    int *vector2 = (newSize==0) ? nullptr : new int[newSize];
-    size_t minSize = vector_arraysize < newSize ? vector_arraysize : newSize;
-    for (size_t i = 0; i < minSize; i++)
-        vector2[i] = this->vector[i];
-    for (size_t i = minSize; i < newSize; i++)
-        vector2[i] = 0;
-    delete [] this->vector;
-    this->vector = vector2;
-    vector_arraysize = newSize;
+    return this->numInfected;
 }
 
-void VectorMsg::setVector(size_t k, int vector)
+void Infection::setNumInfected(int numInfected)
 {
-    if (k >= vector_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)vector_arraysize, (unsigned long)k);
-    this->vector[k] = vector;
+    this->numInfected = numInfected;
 }
 
-void VectorMsg::insertVector(size_t k, int vector)
-{
-    if (k > vector_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)vector_arraysize, (unsigned long)k);
-    size_t newSize = vector_arraysize + 1;
-    int *vector2 = new int[newSize];
-    size_t i;
-    for (i = 0; i < k; i++)
-        vector2[i] = this->vector[i];
-    vector2[k] = vector;
-    for (i = k + 1; i < newSize; i++)
-        vector2[i] = this->vector[i-1];
-    delete [] this->vector;
-    this->vector = vector2;
-    vector_arraysize = newSize;
-}
-
-void VectorMsg::appendVector(int vector)
-{
-    insertVector(vector_arraysize, vector);
-}
-
-void VectorMsg::eraseVector(size_t k)
-{
-    if (k >= vector_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)vector_arraysize, (unsigned long)k);
-    size_t newSize = vector_arraysize - 1;
-    int *vector2 = (newSize == 0) ? nullptr : new int[newSize];
-    size_t i;
-    for (i = 0; i < k; i++)
-        vector2[i] = this->vector[i];
-    for (i = k; i < newSize; i++)
-        vector2[i] = this->vector[i+1];
-    delete [] this->vector;
-    this->vector = vector2;
-    vector_arraysize = newSize;
-}
-
-int VectorMsg::getSender() const
-{
-    return this->sender;
-}
-
-void VectorMsg::setSender(int sender)
-{
-    this->sender = sender;
-}
-
-class VectorMsgDescriptor : public omnetpp::cClassDescriptor
+class InfectionDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertyNames;
     enum FieldConstants {
-        FIELD_vector,
-        FIELD_sender,
+        FIELD_maxInfectable,
+        FIELD_numInfected,
     };
   public:
-    VectorMsgDescriptor();
-    virtual ~VectorMsgDescriptor();
+    InfectionDescriptor();
+    virtual ~InfectionDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -319,24 +249,24 @@ class VectorMsgDescriptor : public omnetpp::cClassDescriptor
     virtual void setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const override;
 };
 
-Register_ClassDescriptor(VectorMsgDescriptor)
+Register_ClassDescriptor(InfectionDescriptor)
 
-VectorMsgDescriptor::VectorMsgDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(VectorMsg)), "omnetpp::cMessage")
+InfectionDescriptor::InfectionDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(Infection)), "omnetpp::cMessage")
 {
     propertyNames = nullptr;
 }
 
-VectorMsgDescriptor::~VectorMsgDescriptor()
+InfectionDescriptor::~InfectionDescriptor()
 {
     delete[] propertyNames;
 }
 
-bool VectorMsgDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool InfectionDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<VectorMsg *>(obj)!=nullptr;
+    return dynamic_cast<Infection *>(obj)!=nullptr;
 }
 
-const char **VectorMsgDescriptor::getPropertyNames() const
+const char **InfectionDescriptor::getPropertyNames() const
 {
     if (!propertyNames) {
         static const char *names[] = {  nullptr };
@@ -347,19 +277,19 @@ const char **VectorMsgDescriptor::getPropertyNames() const
     return propertyNames;
 }
 
-const char *VectorMsgDescriptor::getProperty(const char *propertyName) const
+const char *InfectionDescriptor::getProperty(const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? base->getProperty(propertyName) : nullptr;
 }
 
-int VectorMsgDescriptor::getFieldCount() const
+int InfectionDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? 2+base->getFieldCount() : 2;
 }
 
-unsigned int VectorMsgDescriptor::getFieldTypeFlags(int field) const
+unsigned int InfectionDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -368,13 +298,13 @@ unsigned int VectorMsgDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISARRAY | FD_ISEDITABLE | FD_ISRESIZABLE,    // FIELD_vector
-        FD_ISEDITABLE,    // FIELD_sender
+        FD_ISEDITABLE,    // FIELD_maxInfectable
+        FD_ISEDITABLE,    // FIELD_numInfected
     };
     return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
 }
 
-const char *VectorMsgDescriptor::getFieldName(int field) const
+const char *InfectionDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -383,22 +313,22 @@ const char *VectorMsgDescriptor::getFieldName(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "vector",
-        "sender",
+        "maxInfectable",
+        "numInfected",
     };
     return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
 }
 
-int VectorMsgDescriptor::findField(const char *fieldName) const
+int InfectionDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
-    if (strcmp(fieldName, "vector") == 0) return baseIndex + 0;
-    if (strcmp(fieldName, "sender") == 0) return baseIndex + 1;
+    if (strcmp(fieldName, "maxInfectable") == 0) return baseIndex + 0;
+    if (strcmp(fieldName, "numInfected") == 0) return baseIndex + 1;
     return base ? base->findField(fieldName) : -1;
 }
 
-const char *VectorMsgDescriptor::getFieldTypeString(int field) const
+const char *InfectionDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -407,13 +337,13 @@ const char *VectorMsgDescriptor::getFieldTypeString(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_vector
-        "int",    // FIELD_sender
+        "int",    // FIELD_maxInfectable
+        "int",    // FIELD_numInfected
     };
     return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **VectorMsgDescriptor::getFieldPropertyNames(int field) const
+const char **InfectionDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -426,7 +356,7 @@ const char **VectorMsgDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *VectorMsgDescriptor::getFieldProperty(int field, const char *propertyName) const
+const char *InfectionDescriptor::getFieldProperty(int field, const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -439,7 +369,7 @@ const char *VectorMsgDescriptor::getFieldProperty(int field, const char *propert
     }
 }
 
-int VectorMsgDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
+int InfectionDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -447,14 +377,13 @@ int VectorMsgDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) c
             return base->getFieldArraySize(object, field);
         field -= base->getFieldCount();
     }
-    VectorMsg *pp = omnetpp::fromAnyPtr<VectorMsg>(object); (void)pp;
+    Infection *pp = omnetpp::fromAnyPtr<Infection>(object); (void)pp;
     switch (field) {
-        case FIELD_vector: return pp->getVectorArraySize();
         default: return 0;
     }
 }
 
-void VectorMsgDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
+void InfectionDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -464,14 +393,13 @@ void VectorMsgDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, 
         }
         field -= base->getFieldCount();
     }
-    VectorMsg *pp = omnetpp::fromAnyPtr<VectorMsg>(object); (void)pp;
+    Infection *pp = omnetpp::fromAnyPtr<Infection>(object); (void)pp;
     switch (field) {
-        case FIELD_vector: pp->setVectorArraySize(size); break;
-        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'VectorMsg'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'Infection'", field);
     }
 }
 
-const char *VectorMsgDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
+const char *InfectionDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -479,13 +407,13 @@ const char *VectorMsgDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr obje
             return base->getFieldDynamicTypeString(object,field,i);
         field -= base->getFieldCount();
     }
-    VectorMsg *pp = omnetpp::fromAnyPtr<VectorMsg>(object); (void)pp;
+    Infection *pp = omnetpp::fromAnyPtr<Infection>(object); (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string VectorMsgDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
+std::string InfectionDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -493,15 +421,15 @@ std::string VectorMsgDescriptor::getFieldValueAsString(omnetpp::any_ptr object, 
             return base->getFieldValueAsString(object,field,i);
         field -= base->getFieldCount();
     }
-    VectorMsg *pp = omnetpp::fromAnyPtr<VectorMsg>(object); (void)pp;
+    Infection *pp = omnetpp::fromAnyPtr<Infection>(object); (void)pp;
     switch (field) {
-        case FIELD_vector: return long2string(pp->getVector(i));
-        case FIELD_sender: return long2string(pp->getSender());
+        case FIELD_maxInfectable: return long2string(pp->getMaxInfectable());
+        case FIELD_numInfected: return long2string(pp->getNumInfected());
         default: return "";
     }
 }
 
-void VectorMsgDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
+void InfectionDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -511,15 +439,15 @@ void VectorMsgDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int fie
         }
         field -= base->getFieldCount();
     }
-    VectorMsg *pp = omnetpp::fromAnyPtr<VectorMsg>(object); (void)pp;
+    Infection *pp = omnetpp::fromAnyPtr<Infection>(object); (void)pp;
     switch (field) {
-        case FIELD_vector: pp->setVector(i,string2long(value)); break;
-        case FIELD_sender: pp->setSender(string2long(value)); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'VectorMsg'", field);
+        case FIELD_maxInfectable: pp->setMaxInfectable(string2long(value)); break;
+        case FIELD_numInfected: pp->setNumInfected(string2long(value)); break;
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Infection'", field);
     }
 }
 
-omnetpp::cValue VectorMsgDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
+omnetpp::cValue InfectionDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -527,15 +455,15 @@ omnetpp::cValue VectorMsgDescriptor::getFieldValue(omnetpp::any_ptr object, int 
             return base->getFieldValue(object,field,i);
         field -= base->getFieldCount();
     }
-    VectorMsg *pp = omnetpp::fromAnyPtr<VectorMsg>(object); (void)pp;
+    Infection *pp = omnetpp::fromAnyPtr<Infection>(object); (void)pp;
     switch (field) {
-        case FIELD_vector: return pp->getVector(i);
-        case FIELD_sender: return pp->getSender();
-        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'VectorMsg' as cValue -- field index out of range?", field);
+        case FIELD_maxInfectable: return pp->getMaxInfectable();
+        case FIELD_numInfected: return pp->getNumInfected();
+        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'Infection' as cValue -- field index out of range?", field);
     }
 }
 
-void VectorMsgDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
+void InfectionDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -545,15 +473,15 @@ void VectorMsgDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int 
         }
         field -= base->getFieldCount();
     }
-    VectorMsg *pp = omnetpp::fromAnyPtr<VectorMsg>(object); (void)pp;
+    Infection *pp = omnetpp::fromAnyPtr<Infection>(object); (void)pp;
     switch (field) {
-        case FIELD_vector: pp->setVector(i,omnetpp::checked_int_cast<int>(value.intValue())); break;
-        case FIELD_sender: pp->setSender(omnetpp::checked_int_cast<int>(value.intValue())); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'VectorMsg'", field);
+        case FIELD_maxInfectable: pp->setMaxInfectable(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_numInfected: pp->setNumInfected(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Infection'", field);
     }
 }
 
-const char *VectorMsgDescriptor::getFieldStructName(int field) const
+const char *InfectionDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -566,7 +494,7 @@ const char *VectorMsgDescriptor::getFieldStructName(int field) const
     };
 }
 
-omnetpp::any_ptr VectorMsgDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
+omnetpp::any_ptr InfectionDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -574,13 +502,13 @@ omnetpp::any_ptr VectorMsgDescriptor::getFieldStructValuePointer(omnetpp::any_pt
             return base->getFieldStructValuePointer(object, field, i);
         field -= base->getFieldCount();
     }
-    VectorMsg *pp = omnetpp::fromAnyPtr<VectorMsg>(object); (void)pp;
+    Infection *pp = omnetpp::fromAnyPtr<Infection>(object); (void)pp;
     switch (field) {
         default: return omnetpp::any_ptr(nullptr);
     }
 }
 
-void VectorMsgDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
+void InfectionDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -590,9 +518,9 @@ void VectorMsgDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, in
         }
         field -= base->getFieldCount();
     }
-    VectorMsg *pp = omnetpp::fromAnyPtr<VectorMsg>(object); (void)pp;
+    Infection *pp = omnetpp::fromAnyPtr<Infection>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'VectorMsg'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Infection'", field);
     }
 }
 

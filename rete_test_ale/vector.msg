@@ -1,4 +1,5 @@
 message VectorMsg
 	{
-	    int vector[4];
+	    int vector[];
+	    int sender;
 	}
