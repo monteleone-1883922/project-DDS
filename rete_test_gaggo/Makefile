@@ -1,5 +1,5 @@
 #
-# OMNeT++/OMNEST Makefile for rete_test_ale
+# OMNeT++/OMNEST Makefile for rete
 #
 # This file was generated with the command:
 #  opp_makemake -f --deep -O out -I.
@@ -7,7 +7,7 @@
 
 # Name of target to be created (-o option)
 TARGET_DIR = .
-TARGET_NAME = rete_test_ale$(D)
+TARGET_NAME = rete$(D)
 TARGET = $(TARGET_NAME)$(EXE_SUFFIX)
 TARGET_IMPLIB = $(TARGET_NAME)$(IMPLIB_SUFFIX)
 TARGET_IMPDEF = $(TARGET_NAME)$(IMPDEF_SUFFIX)
@@ -33,12 +33,20 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS = $O/process.o $O/infection_m.o $O/int_m.o $O/vector_m.o
+OBJS = \
+    $O/process.o \
+    $O/collect_m.o \
+    $O/infection_m.o \
+    $O/int_m.o \
+    $O/proposal_m.o \
+    $O/vector_m.o
 
 # Message files
 MSGFILES = \
+    collect.msg \
     infection.msg \
     int.msg \
+    proposal.msg \
     vector.msg
 
 # SM files
