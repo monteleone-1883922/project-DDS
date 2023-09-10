@@ -129,9 +129,3 @@ void process::handleMessage(cMessage* msg) {
 
 
 
-    /*
-     if(arrivalGate == gate("in3")){
-     std::string mes = msg->getFullName();
-     send(msg, "ou0");
-     }*/
-

@@ -1,28 +1,24 @@
-network Network
+network Topology
 {
     parameters:
         int numinfected = default(0);
-        @display("bgb=180,139");
     types:
-        channel Link extends ned.DelayChannel
-        {
+        channel Link extends ned.DelayChannel{
             delay = 1000ms;
         }
     submodules:
-        process[4]: process {
-
-            @display("p=70,62");
-        }
+        process[4]: process ;
+        
     connections:
         //PROCESS 0
-
+        
         process[0].gate++ <--> Link <--> process[1].gate++;
         process[0].gate++ <--> Link <--> process[2].gate++;
         process[0].gate++ <--> Link <--> process[3].gate++;
-
+        
         process[1].gate++ <--> Link <--> process[2].gate++;
         process[1].gate++ <--> Link <--> process[3].gate++;
-
+        
         process[2].gate++ <--> Link <--> process[3].gate++;
-
+        
 }
