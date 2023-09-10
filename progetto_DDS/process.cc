@@ -1,6 +1,25 @@
 
 #include "process.h"
 
+
+using namespace omnetpp;
+
+class process: public cSimpleModule {
+
+private:
+    int dec;
+    int v;
+    int* sv;
+    int* ev;
+
+
+protected:
+    virtual void initialize();
+    virtual void handleMessage(cMessage *msg);
+
+
+};
+
 Define_Module(Process);
 
 void Process::initialize()
