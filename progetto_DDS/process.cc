@@ -16,6 +16,8 @@ private:
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
+    virtual int propose(int v);
+    virtual int collect(int *v);
 
 
 };
