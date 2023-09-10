@@ -22,14 +22,17 @@ class VectorMsg;
  * <pre>
  * message VectorMsg
  * {
- *     int vector[4];
+ *     int vector[];
+ *     int sender;
  * }
  * </pre>
  */
 class VectorMsg : public ::omnetpp::cMessage
 {
   protected:
-    int vector[4] = {0};
+    int *vector = nullptr;
+    size_t vector_arraysize = 0;
+    int sender = 0;
 
   private:
     void copy(const VectorMsg& other);
@@ -46,9 +49,17 @@ class VectorMsg : public ::omnetpp::cMessage
     virtual void parsimPack(omnetpp::cCommBuffer *b) const override;
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
+    virtual void setVectorArraySize(size_t size);
     virtual size_t getVectorArraySize() const;
     virtual int getVector(size_t k) const;
     virtual void setVector(size_t k, int vector);
+    virtual void insertVector(size_t k, int vector);
+    [[deprecated]] void insertVector(int vector) {appendVector(vector);}
+    virtual void appendVector(int vector);
+    virtual void eraseVector(size_t k);
+
+    virtual int getSender() const;
+    virtual void setSender(int sender);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const VectorMsg& obj) {obj.parsimPack(b);}
