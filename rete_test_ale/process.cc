@@ -20,14 +20,14 @@ protected:
     virtual void initialize() ;
     virtual void handleMessage(cMessage *msg);
     virtual void printVector(int id,int** vector, std::string nomeVettore);
-    virtual void setArray(VectorMsg msg, int* array);
+    virtual void setArray(VectorMsg *msg, int* array);
 
 };
 
 Define_Module(process);
 
 
-void process::setArray(VectorMsg msg, int* array){
+void process::setArray(VectorMsg *msg, int* array){
     for (int i =0;i<sizeof(myNum); i++){
         msg->setVector(i,array[i]);
     }

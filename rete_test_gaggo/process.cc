@@ -5,6 +5,7 @@
 #include "vector_m.h"
 #include "proposal_m.h"
 #include "collect_m.h"
+#include "prova_m.h"
 
 using namespace omnetpp;
 
@@ -18,6 +19,11 @@ private:
     bool infected = 0; //indica se il modulo è o no infetto
     int decided; //valore finale
     int *SV;
+    int *Ev;
+    int recivedPV=0;
+    int recivedSV=0;
+    int *RV;
+    int c;
 
 protected:
     virtual void initialize();
@@ -28,10 +34,13 @@ protected:
     virtual void propose(int v);
     virtual void collect(int v);
     virtual bool fullArray(int *array);
+    virtual void decide(int v,int *SV);
+    virtual void setArray(int* array, int size);
 
 };
 
 Define_Module(process);
+
 
 void process::printVector(int id, int *vector, std::string nomeVettore,
         int numSubmodules) {
@@ -93,7 +102,7 @@ void process::collect(int v) {
         }
     }
 }
-
+void process::decide(int value, int *SV){}
 bool process::fullArray(int *array) {
 
     for (int i = 0; i < numSubmodules; i++) {
@@ -115,6 +124,7 @@ void process::initialize() {
     for (int i = 0; i < numSubmodules; i++) {
         SV[i] = -1;
     }
+    /* SCOMMENTARE
     // Inizializza il generatore di numeri casuali con un seed
     std::random_device rd;
     std::mt19937 generator(rd());
@@ -132,9 +142,21 @@ void process::initialize() {
     IntegerMsg *msg = new IntegerMsg("starter");
     msg->setIntMsg(myNum);
     msg->setSender(getIndex());
-
+*/
     //spedisce il messaggio a tutti
-    propose(myNum);
+    //propose(myNum);
+    if(getIndex()==0){
+    int* arrayToSend = new int[5] {1, 2, 3, 4, 5};
+    Prova* mesg = new Prova();
+    int arraySize=4;
+    mesg->setDataArraySize((arraySize));
+   for (int i = 0; i < arraySize; i++) {
+        mesg->setData(i, i);  // Popola l'array con i dati desiderati
+    }
+    send(mesg, "gate$o", 0);
+    send(mesg, "gate$o", 2);
+    send(mesg, "gate$o", 1);}
+
 
 }
 void process::handleMessage(cMessage *msg) {
@@ -145,12 +167,14 @@ void process::handleMessage(cMessage *msg) {
     std::string mes = msg->getName();
 
     //fa un cast safe al tipo indicato
+    /* SCOMMENTARE
     if (dynamic_cast<ProposalMsg*>(msg)) {
 
         ProposalMsg *my_msg = check_and_cast<ProposalMsg*>(msg);
 
         // inserisce il numero ricevuto nell array del modulo ricevente nella posizione dedicata al modulo sender
         PV[my_msg->getSender()] = my_msg->getIntMsg();
+        recivedPV++; //per ora non viene utilizzato
         printVector(getIndex(), PV, "PV", numSubmodules);
         if (fullArray(PV)) {
             EV << "Ho ricevuto tutte le proposte \n";
@@ -159,17 +183,39 @@ void process::handleMessage(cMessage *msg) {
             collect(myNum);
         }
     }
+
     /*
     for (int i = 0; i < numSubmodules; i++) {
         WATCH(PV[i]);
     }*/
-
+/* SCOMMENTARE
     if (dynamic_cast<CollectMsg*>(msg)) {
         CollectMsg *cMsg = check_and_cast<CollectMsg *>(msg);
         SV[cMsg->getSender()] = cMsg->getIntMsg();
+        recivedSV++;
         printVector(getIndex(), SV, "SV", numSubmodules);
-    }
+        if(recivedSV==numSubmodules){
+            decided=-1;
+            decide(myNum,SV);
+        }
+
+    }*/
+
+        if (dynamic_cast<Prova*>(msg)) {
+
+            Prova* myMsg = check_and_cast<Prova*>(msg);
+            int arraySize = myMsg->getDataArraySize();
+            int risultato[arraySize];
+            for (int i = 0; i < arraySize; i++) {
+              int element = myMsg->getData(i);
+              risultato[i]=element;
+              printVector(getIndex(), risultato, "risultato", numSubmodules);
+        }
+
+        }
 
 
-}
+        }
+
+
 

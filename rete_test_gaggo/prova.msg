@@ -1,0 +1,6 @@
+message Prova {
+
+	int data[];
+
+    
+}

@@ -34,11 +34,13 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
 OBJS = \
+    $O/MyMessage.o \
     $O/process.o \
     $O/collect_m.o \
     $O/infection_m.o \
     $O/int_m.o \
     $O/proposal_m.o \
+    $O/prova_m.o \
     $O/vector_m.o
 
 # Message files
@@ -47,6 +49,7 @@ MSGFILES = \
     infection.msg \
     int.msg \
     proposal.msg \
+    prova.msg \
     vector.msg
 
 # SM files
