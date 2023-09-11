@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgtool 6.0 from prova.msg.
+// Generated file, do not edit! Created by opp_msgtool 6.0 from maintain.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -28,7 +28,7 @@
 #include <sstream>
 #include <memory>
 #include <type_traits>
-#include "prova_m.h"
+#include "maintain_m.h"
 
 namespace omnetpp {
 
@@ -150,23 +150,22 @@ void doParsimUnpacking(omnetpp::cCommBuffer *, T& t)
 
 }  // namespace omnetpp
 
-Register_Class(Prova)
+Register_Class(Maintain)
 
-Prova::Prova(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
+Maintain::Maintain(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
 {
 }
 
-Prova::Prova(const Prova& other) : ::omnetpp::cMessage(other)
+Maintain::Maintain(const Maintain& other) : ::omnetpp::cMessage(other)
 {
     copy(other);
 }
 
-Prova::~Prova()
+Maintain::~Maintain()
 {
-    delete [] this->data;
 }
 
-Prova& Prova::operator=(const Prova& other)
+Maintain& Maintain::operator=(const Maintain& other)
 {
     if (this == &other) return *this;
     ::omnetpp::cMessage::operator=(other);
@@ -174,112 +173,57 @@ Prova& Prova::operator=(const Prova& other)
     return *this;
 }
 
-void Prova::copy(const Prova& other)
+void Maintain::copy(const Maintain& other)
 {
-    delete [] this->data;
-    this->data = (other.data_arraysize==0) ? nullptr : new int[other.data_arraysize];
-    data_arraysize = other.data_arraysize;
-    for (size_t i = 0; i < data_arraysize; i++) {
-        this->data[i] = other.data[i];
-    }
+    this->finalDecision = other.finalDecision;
+    this->sender = other.sender;
 }
 
-void Prova::parsimPack(omnetpp::cCommBuffer *b) const
+void Maintain::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::omnetpp::cMessage::parsimPack(b);
-    b->pack(data_arraysize);
-    doParsimArrayPacking(b,this->data,data_arraysize);
+    doParsimPacking(b,this->finalDecision);
+    doParsimPacking(b,this->sender);
 }
 
-void Prova::parsimUnpack(omnetpp::cCommBuffer *b)
+void Maintain::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::omnetpp::cMessage::parsimUnpack(b);
-    delete [] this->data;
-    b->unpack(data_arraysize);
-    if (data_arraysize == 0) {
-        this->data = nullptr;
-    } else {
-        this->data = new int[data_arraysize];
-        doParsimArrayUnpacking(b,this->data,data_arraysize);
-    }
+    doParsimUnpacking(b,this->finalDecision);
+    doParsimUnpacking(b,this->sender);
 }
 
-size_t Prova::getDataArraySize() const
+int Maintain::getFinalDecision() const
 {
-    return data_arraysize;
+    return this->finalDecision;
 }
 
-int Prova::getData(size_t k) const
+void Maintain::setFinalDecision(int finalDecision)
 {
-    if (k >= data_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)data_arraysize, (unsigned long)k);
-    return this->data[k];
+    this->finalDecision = finalDecision;
 }
 
-void Prova::setDataArraySize(size_t newSize)
+int Maintain::getSender() const
 {
-    int *data2 = (newSize==0) ? nullptr : new int[newSize];
-    size_t minSize = data_arraysize < newSize ? data_arraysize : newSize;
-    for (size_t i = 0; i < minSize; i++)
-        data2[i] = this->data[i];
-    for (size_t i = minSize; i < newSize; i++)
-        data2[i] = 0;
-    delete [] this->data;
-    this->data = data2;
-    data_arraysize = newSize;
+    return this->sender;
 }
 
-void Prova::setData(size_t k, int data)
+void Maintain::setSender(int sender)
 {
-    if (k >= data_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)data_arraysize, (unsigned long)k);
-    this->data[k] = data;
+    this->sender = sender;
 }
 
-void Prova::insertData(size_t k, int data)
-{
-    if (k > data_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)data_arraysize, (unsigned long)k);
-    size_t newSize = data_arraysize + 1;
-    int *data2 = new int[newSize];
-    size_t i;
-    for (i = 0; i < k; i++)
-        data2[i] = this->data[i];
-    data2[k] = data;
-    for (i = k + 1; i < newSize; i++)
-        data2[i] = this->data[i-1];
-    delete [] this->data;
-    this->data = data2;
-    data_arraysize = newSize;
-}
-
-void Prova::appendData(int data)
-{
-    insertData(data_arraysize, data);
-}
-
-void Prova::eraseData(size_t k)
-{
-    if (k >= data_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)data_arraysize, (unsigned long)k);
-    size_t newSize = data_arraysize - 1;
-    int *data2 = (newSize == 0) ? nullptr : new int[newSize];
-    size_t i;
-    for (i = 0; i < k; i++)
-        data2[i] = this->data[i];
-    for (i = k; i < newSize; i++)
-        data2[i] = this->data[i+1];
-    delete [] this->data;
-    this->data = data2;
-    data_arraysize = newSize;
-}
-
-class ProvaDescriptor : public omnetpp::cClassDescriptor
+class MaintainDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertyNames;
     enum FieldConstants {
-        FIELD_data,
+        FIELD_finalDecision,
+        FIELD_sender,
     };
   public:
-    ProvaDescriptor();
-    virtual ~ProvaDescriptor();
+    MaintainDescriptor();
+    virtual ~MaintainDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -305,24 +249,24 @@ class ProvaDescriptor : public omnetpp::cClassDescriptor
     virtual void setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const override;
 };
 
-Register_ClassDescriptor(ProvaDescriptor)
+Register_ClassDescriptor(MaintainDescriptor)
 
-ProvaDescriptor::ProvaDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(Prova)), "omnetpp::cMessage")
+MaintainDescriptor::MaintainDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(Maintain)), "omnetpp::cMessage")
 {
     propertyNames = nullptr;
 }
 
-ProvaDescriptor::~ProvaDescriptor()
+MaintainDescriptor::~MaintainDescriptor()
 {
     delete[] propertyNames;
 }
 
-bool ProvaDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool MaintainDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<Prova *>(obj)!=nullptr;
+    return dynamic_cast<Maintain *>(obj)!=nullptr;
 }
 
-const char **ProvaDescriptor::getPropertyNames() const
+const char **MaintainDescriptor::getPropertyNames() const
 {
     if (!propertyNames) {
         static const char *names[] = {  nullptr };
@@ -333,19 +277,19 @@ const char **ProvaDescriptor::getPropertyNames() const
     return propertyNames;
 }
 
-const char *ProvaDescriptor::getProperty(const char *propertyName) const
+const char *MaintainDescriptor::getProperty(const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? base->getProperty(propertyName) : nullptr;
 }
 
-int ProvaDescriptor::getFieldCount() const
+int MaintainDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 1+base->getFieldCount() : 1;
+    return base ? 2+base->getFieldCount() : 2;
 }
 
-unsigned int ProvaDescriptor::getFieldTypeFlags(int field) const
+unsigned int MaintainDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -354,12 +298,13 @@ unsigned int ProvaDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISARRAY | FD_ISEDITABLE | FD_ISRESIZABLE,    // FIELD_data
+        FD_ISEDITABLE,    // FIELD_finalDecision
+        FD_ISEDITABLE,    // FIELD_sender
     };
-    return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
 }
 
-const char *ProvaDescriptor::getFieldName(int field) const
+const char *MaintainDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -368,20 +313,22 @@ const char *ProvaDescriptor::getFieldName(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "data",
+        "finalDecision",
+        "sender",
     };
-    return (field >= 0 && field < 1) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
 }
 
-int ProvaDescriptor::findField(const char *fieldName) const
+int MaintainDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
-    if (strcmp(fieldName, "data") == 0) return baseIndex + 0;
+    if (strcmp(fieldName, "finalDecision") == 0) return baseIndex + 0;
+    if (strcmp(fieldName, "sender") == 0) return baseIndex + 1;
     return base ? base->findField(fieldName) : -1;
 }
 
-const char *ProvaDescriptor::getFieldTypeString(int field) const
+const char *MaintainDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -390,12 +337,13 @@ const char *ProvaDescriptor::getFieldTypeString(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_data
+        "int",    // FIELD_finalDecision
+        "int",    // FIELD_sender
     };
-    return (field >= 0 && field < 1) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **ProvaDescriptor::getFieldPropertyNames(int field) const
+const char **MaintainDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -408,7 +356,7 @@ const char **ProvaDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *ProvaDescriptor::getFieldProperty(int field, const char *propertyName) const
+const char *MaintainDescriptor::getFieldProperty(int field, const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -421,7 +369,7 @@ const char *ProvaDescriptor::getFieldProperty(int field, const char *propertyNam
     }
 }
 
-int ProvaDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
+int MaintainDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -429,14 +377,13 @@ int ProvaDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
             return base->getFieldArraySize(object, field);
         field -= base->getFieldCount();
     }
-    Prova *pp = omnetpp::fromAnyPtr<Prova>(object); (void)pp;
+    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
     switch (field) {
-        case FIELD_data: return pp->getDataArraySize();
         default: return 0;
     }
 }
 
-void ProvaDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
+void MaintainDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -446,14 +393,13 @@ void ProvaDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int 
         }
         field -= base->getFieldCount();
     }
-    Prova *pp = omnetpp::fromAnyPtr<Prova>(object); (void)pp;
+    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
     switch (field) {
-        case FIELD_data: pp->setDataArraySize(size); break;
-        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'Prova'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'Maintain'", field);
     }
 }
 
-const char *ProvaDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
+const char *MaintainDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -461,13 +407,13 @@ const char *ProvaDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, 
             return base->getFieldDynamicTypeString(object,field,i);
         field -= base->getFieldCount();
     }
-    Prova *pp = omnetpp::fromAnyPtr<Prova>(object); (void)pp;
+    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string ProvaDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
+std::string MaintainDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -475,14 +421,15 @@ std::string ProvaDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int 
             return base->getFieldValueAsString(object,field,i);
         field -= base->getFieldCount();
     }
-    Prova *pp = omnetpp::fromAnyPtr<Prova>(object); (void)pp;
+    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
     switch (field) {
-        case FIELD_data: return long2string(pp->getData(i));
+        case FIELD_finalDecision: return long2string(pp->getFinalDecision());
+        case FIELD_sender: return long2string(pp->getSender());
         default: return "";
     }
 }
 
-void ProvaDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
+void MaintainDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -492,14 +439,15 @@ void ProvaDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, 
         }
         field -= base->getFieldCount();
     }
-    Prova *pp = omnetpp::fromAnyPtr<Prova>(object); (void)pp;
+    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
     switch (field) {
-        case FIELD_data: pp->setData(i,string2long(value)); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Prova'", field);
+        case FIELD_finalDecision: pp->setFinalDecision(string2long(value)); break;
+        case FIELD_sender: pp->setSender(string2long(value)); break;
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Maintain'", field);
     }
 }
 
-omnetpp::cValue ProvaDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
+omnetpp::cValue MaintainDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -507,14 +455,15 @@ omnetpp::cValue ProvaDescriptor::getFieldValue(omnetpp::any_ptr object, int fiel
             return base->getFieldValue(object,field,i);
         field -= base->getFieldCount();
     }
-    Prova *pp = omnetpp::fromAnyPtr<Prova>(object); (void)pp;
+    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
     switch (field) {
-        case FIELD_data: return pp->getData(i);
-        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'Prova' as cValue -- field index out of range?", field);
+        case FIELD_finalDecision: return pp->getFinalDecision();
+        case FIELD_sender: return pp->getSender();
+        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'Maintain' as cValue -- field index out of range?", field);
     }
 }
 
-void ProvaDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
+void MaintainDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -524,14 +473,15 @@ void ProvaDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, c
         }
         field -= base->getFieldCount();
     }
-    Prova *pp = omnetpp::fromAnyPtr<Prova>(object); (void)pp;
+    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
     switch (field) {
-        case FIELD_data: pp->setData(i,omnetpp::checked_int_cast<int>(value.intValue())); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Prova'", field);
+        case FIELD_finalDecision: pp->setFinalDecision(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_sender: pp->setSender(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Maintain'", field);
     }
 }
 
-const char *ProvaDescriptor::getFieldStructName(int field) const
+const char *MaintainDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -544,7 +494,7 @@ const char *ProvaDescriptor::getFieldStructName(int field) const
     };
 }
 
-omnetpp::any_ptr ProvaDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
+omnetpp::any_ptr MaintainDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -552,13 +502,13 @@ omnetpp::any_ptr ProvaDescriptor::getFieldStructValuePointer(omnetpp::any_ptr ob
             return base->getFieldStructValuePointer(object, field, i);
         field -= base->getFieldCount();
     }
-    Prova *pp = omnetpp::fromAnyPtr<Prova>(object); (void)pp;
+    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
     switch (field) {
         default: return omnetpp::any_ptr(nullptr);
     }
 }
 
-void ProvaDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
+void MaintainDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -568,9 +518,9 @@ void ProvaDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int fi
         }
         field -= base->getFieldCount();
     }
-    Prova *pp = omnetpp::fromAnyPtr<Prova>(object); (void)pp;
+    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Prova'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Maintain'", field);
     }
 }
 

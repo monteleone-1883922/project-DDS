@@ -1,6 +1,0 @@
-message Prova {
-
-	int data[];
-
-    
-}

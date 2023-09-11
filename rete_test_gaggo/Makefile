@@ -37,19 +37,21 @@ OBJS = \
     $O/MyMessage.o \
     $O/process.o \
     $O/collect_m.o \
+    $O/decide_m.o \
     $O/infection_m.o \
     $O/int_m.o \
+    $O/maintain_m.o \
     $O/proposal_m.o \
-    $O/prova_m.o \
     $O/vector_m.o
 
 # Message files
 MSGFILES = \
     collect.msg \
+    decide.msg \
     infection.msg \
     int.msg \
+    maintain.msg \
     proposal.msg \
-    prova.msg \
     vector.msg
 
 # SM files
