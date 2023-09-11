@@ -13,6 +13,7 @@ private:
     int num = 0;
     int numSubmodules;
     int myNum;
+    bool infected = 0;
 
 //public:
    // process() : variabile2 =  // Inizializzata a 0 per ogni istanza
@@ -21,10 +22,30 @@ protected:
     virtual void initialize() ;
     virtual void handleMessage(cMessage *msg);
     virtual void printVector(int id,int* vector, std::string nomeVettore,int numSubmodules);
+    virtual void generateInfections(int numProcesses, int numInfected, int process, int seed);
 
 };
 
 Define_Module(process);
+
+bool process::generateInfections(int numProcesses, int numInfected, int process, int seed){
+    std::mt19937 rng(seed);
+    int *processes = new int[numProcesses]();
+    for (int i = 0 ; i < numProcesses; i++){
+        processes[i] = i;
+    }
+    random_shuffle(std::begin(processes), std::end(processes), rng);
+    for( int i = 0; i<numInfected; i++){
+        if( processes[i] == process){
+            return 1;
+        }
+    }
+    delete[] processes;
+    return 0;
+
+}
+
+
 
 
 void process::printVector(int id,int* vector, std::string nomeVettore,int numSubmodules){
@@ -41,6 +62,10 @@ void process::initialize() {
         variabile2 = new int[numSubmodules]();
     //if (strcmp(getName(), "process0") == 0) {
         // Inizializza il generatore di numeri casuali con un seed
+
+        if (generateInfections(4,1,getIndex(),42)){
+            infected = 1;
+        }
         std::random_device rd;
         std::mt19937 generator(rd());
 
