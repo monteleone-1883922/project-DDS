@@ -38,6 +38,7 @@ OBJS = \
     $O/process.o \
     $O/collect_m.o \
     $O/decide_m.o \
+    $O/infected_m.o \
     $O/infection_m.o \
     $O/int_m.o \
     $O/maintain_m.o \
@@ -48,6 +49,7 @@ OBJS = \
 MSGFILES = \
     collect.msg \
     decide.msg \
+    infected.msg \
     infection.msg \
     int.msg \
     maintain.msg \
