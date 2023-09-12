@@ -1,4 +1,4 @@
-message ProposalMsg
+message KingSend
 	{
 	    int intMsg;
 	    int sender;

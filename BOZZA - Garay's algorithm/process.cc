@@ -1,12 +1,9 @@
 #include <random>
 #include "process.h"
 #include <omnetpp.h>
-#include "int_m.h"
-#include "vector_m.h"
-#include "proposal_m.h"
-#include "collect_m.h"
-#include "decide_m.h"
-#include "maintain_m.h"
+#include "sendValue_m.h"
+#include "kingSend_m.h"
+#include "sendList_m.h"
 #include "infected_m.h"
 
 using namespace omnetpp;
@@ -15,13 +12,13 @@ class process: public cSimpleModule {
 
 private:
     int *MV; //qui vengono salvati tutti i valori ricevuti dagli altri moduli
+    int recivedMV = 0;
     int numSubmodules; //rappresenta il numero di moduli nella rete
     int value; //rappresenta il numero randomico scelto dal modulo
     bool infected = 0; //indica se il modulo è o no infetto
-    int decided; //valore finale
-    int recivedMV = 0;
     int **echo;
-    int r = 0;
+    int recivedEcho = 0;
+    int round = 0;
     int c;
     int k;
     int numInfected = 2;
@@ -29,22 +26,22 @@ private:
     int *infectableProcess;
     int indexCorrectProcess = 2;
     int *setProcess;
-    int * RV;
+    int *ValuesFromKing;
+    bool cured= true;
 
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
     virtual void printVector(int id, int *vector, std::string nomeVettore,
             int numSubmodules);
-    virtual int canIdecide(int id, int minNumber, int *list);
-    virtual void send(int v);
-    virtual void reconstruction(int* array);
+    virtual void sendValue(int v);
+    virtual void reconstruction(int *array);
     virtual void kingSend(int v);
     virtual bool updateInfectedStatus();
     virtual void sendNewInfected(int *inf);
     virtual void updateInfected(int *arrayUpdated, int num);
     virtual int* createNewArrayInfectable(int arraySize, int *init, int pos);
-    virtual int countOne(int * array);
+    virtual int countOne(int *array);
 };
 
 Define_Module(process);
@@ -115,10 +112,10 @@ void process::printVector(int id, int *vector, std::string nomeVettore,
     }
     EV << id << " vettore " + nomeVettore + " = " << vec << endl;
 }
-void process::send(int v) {
+void process::sendValue(int v) {
 
     for (int i = 0; i < 4; i++) {
-        ProposalMsg *msg = new ProposalMsg("propose");
+        SendValue *msg = new SendValue("propose");
         if (!infected) {
             msg->setIntMsg(v);
         } else {
@@ -143,7 +140,7 @@ void process::send(int v) {
 void process::kingSend(int v) {
 
     for (int i = 0; i < 4; i++) {
-        CollectMsg *msg = new CollectMsg("collect");
+        KingSend *msg = new KingSend("collect");
         if (!infected) {
             msg->setIntMsg(v);
         } else {
@@ -165,7 +162,7 @@ void process::kingSend(int v) {
     }
 }
 void process::reconstruction(int *array) {
-    Decide *mesg = new Decide();
+    SendList *mesg = new SendList();
     mesg->setDataArraySize((numSubmodules));
     std::random_device rd;
     std::mt19937 generator(rd());
@@ -188,7 +185,14 @@ void process::reconstruction(int *array) {
     }
 
 }
-
+int process::countOne(int *array) {
+    int counter = 0;
+    for (int i = 0; i < numSubmodules; i++) {
+        if (array[i] == 1)
+            counter++;
+    }
+    return counter;
+}
 void process::initialize() {
 
     // si salva il numero di moduli presenti e inizializza il vettore in modo che abbia una cella per ogni modulo
@@ -197,7 +201,7 @@ void process::initialize() {
     //inizializza le liste
     MV = new int[numSubmodules]();
     for (int i = 0; i < numSubmodules; i++) {
-        PV[i] = -1;
+        MV[i] = -1;
     }
     // Inizializza il generatore di numeri casuali con un seed
     std::random_device rd;
@@ -232,14 +236,7 @@ void process::initialize() {
     }
 
 }
-int process::countOne(int * array){
-    int counter=0;
-    for(int i=0; i< numSubmodules;i++){
-        if(array[i]==1)
-        count++
-    }
-    return counter;
-}
+
 void process::handleMessage(cMessage *msg) {
 
     cGate *arrivalGate = msg->getArrivalGate();
@@ -257,48 +254,48 @@ void process::handleMessage(cMessage *msg) {
         printVector(getIndex(), processInfected,
                 "Lista processi infetti ricevuta", numInfected);
         EV << getIndex() << " sceglie num " << value << "\n";
-        send(value);
+        sendValue(value);
     }
-    if (dynamic_cast<ProposalMsg*>(msg)) {
+    if (dynamic_cast<SendValue*>(msg)) {
 
-        ProposalMsg *my_msg = check_and_cast<ProposalMsg*>(msg);
+        SendValue *my_msg = check_and_cast<SendValue*>(msg);
 
         // inserisce il numero ricevuto nell array del modulo ricevente nella posizione dedicata al modulo sender
         MV[my_msg->getSender()] = my_msg->getIntMsg();
-        recivedPV++; //per ora non viene utilizzato
+        recivedMV++; //per ora non viene utilizzato
         printVector(getIndex(), MV, "MV", numSubmodules);
-        if (recivedPV == numSubmodules) {
+        if (recivedMV == numSubmodules) {
             EV << "Ho ricevuto tutte le proposte \n";
             c = countOne(MV);
-            if(c >=numSubmodules/2)
-            v=1;
-        else{
-            v=0;
-        }
-            recivedPV = 0;
+            if (c >= numSubmodules / 2)
+                value = 1;
+            else {
+                value = 0;
+            }
+            recivedMV = 0;
             reconstruction(MV);
         }
     }
 
-    if (dynamic_cast<CollectMsg*>(msg)) {
-        CollectMsg *cMsg = check_and_cast<CollectMsg*>(msg);
+    if (dynamic_cast<KingSend*>(msg)) {
+        KingSend *cMsg = check_and_cast<KingSend*>(msg);
         int vKing = cMsg->getIntMsg();
-        if((vKing == 0 || vKing==1) && c < numSubmodules- 2 * numInfected)
+        if ((vKing == 0 || vKing == 1) && c < numSubmodules - 2 * numInfected)
             value = vKing;
-        r++;
-        }
-    
-    if (dynamic_cast<Decide*>(msg)) {
+       round++;
+    }
 
-        Decide *myMsg = check_and_cast<Decide*>(msg);
-        recivedEv++; //aggiorno il contatore di messaggi ricevuti
+    if (dynamic_cast<SendList*>(msg)) {
+
+        SendList *myMsg = check_and_cast<SendList*>(msg);
+        recivedEcho++; //aggiorno il contatore di messaggi ricevuti
         int sender = myMsg->getSender(); //mi salvo il sender
         //salvo l'array ricevuto nella riga del sender
         for (int i = 0; i < numSubmodules; i++) {
             int element = myMsg->getData(i);
             echo[sender][i] = element;
         }
-        if (recivedEv == numSubmodules) { //se ho ricevuto gli array da tutti
+        if (recivedEcho == numSubmodules) { //se ho ricevuto gli array da tutti
             EV << "ho ricevuto tutto" << endl;
             printVector(getIndex(), echo[0], "Ev[0]", numSubmodules);
             printVector(getIndex(), echo[1], "Ev[1]", numSubmodules);
@@ -306,41 +303,41 @@ void process::handleMessage(cMessage *msg) {
             printVector(getIndex(), echo[3], "Ev[3]", numSubmodules);
             //setto tutti i campi di RV a null
 
-            if(cured){
-                if(r%2==0){
-            //PROCEDURE RECONSTRUCT(r)
-                                recivedPV = 0;
-            //controllo se tra le colonne ci sono abbastanza valori uguali
-            for (int j = 0; j < numSubmodules; j++) {
-                int count0 = 0;
-                int count1 = 0;
-                for (int k = 0; k < numSubmodules; k++) {
-                    if (echo[k][j] == 0)
-                        count0++;
-                    if (echo[k][j] == 1)
-                        count1++;
+            if (cured) { ///DA IMPLEMENTARE
+                if (round % 2 == 0) {
+                    //PROCEDURE RECONSTRUCT(r)
+                    recivedEcho = 0;
+                    //controllo se tra le colonne ci sono abbastanza valori uguali
+                    for (int j = 0; j < numSubmodules; j++) {
+                        int count0 = 0;
+                        int count1 = 0;
+                        for (int k = 0; k < numSubmodules; k++) {
+                            if (echo[k][j] == 0)
+                                count0++;
+                            if (echo[k][j] == 1)
+                                count1++;
 
-                }
-                if (count0 > 2 * numInfected)
-                    RV[j] = 0;
-                if (count1 > 2 * numInfected)
-                    RV[j] = 1;
+                        }
+                        if (count0 > 2 * numInfected)
+                            ValuesFromKing[j] = 0;
+                        if (count1 > 2 * numInfected)
+                            ValuesFromKing[j] = 1;
 
-            }
-        c= countOne(RV);
-        if(c >=numSubmodules/2)
-            v=1;
-        else{
-            v=0;   
-        }
+                    }
+                    c = countOne(ValuesFromKing);
+                    if (c >= numSubmodules / 2)
+                        value = 1;
+                    else {
+                        value = 0;
+                    }
                 }
             }
-                
-            k= (r % numSubmodules)+1; // (* k is the phase's king *)
-            if(k==p)
+
+            k = (round % numSubmodules) + 1; // (* k is the phase's king *)
+            if (k == getIndex())
                 kingSend(value);
-            }
         }
+    }
 
 }
 

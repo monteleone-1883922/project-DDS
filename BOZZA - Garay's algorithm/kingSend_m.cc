@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgtool 6.0 from maintain.msg.
+// Generated file, do not edit! Created by opp_msgtool 6.0 from kingSend.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -28,7 +28,7 @@
 #include <sstream>
 #include <memory>
 #include <type_traits>
-#include "maintain_m.h"
+#include "kingSend_m.h"
 
 namespace omnetpp {
 
@@ -150,22 +150,22 @@ void doParsimUnpacking(omnetpp::cCommBuffer *, T& t)
 
 }  // namespace omnetpp
 
-Register_Class(Maintain)
+Register_Class(KingSend)
 
-Maintain::Maintain(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
+KingSend::KingSend(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
 {
 }
 
-Maintain::Maintain(const Maintain& other) : ::omnetpp::cMessage(other)
+KingSend::KingSend(const KingSend& other) : ::omnetpp::cMessage(other)
 {
     copy(other);
 }
 
-Maintain::~Maintain()
+KingSend::~KingSend()
 {
 }
 
-Maintain& Maintain::operator=(const Maintain& other)
+KingSend& KingSend::operator=(const KingSend& other)
 {
     if (this == &other) return *this;
     ::omnetpp::cMessage::operator=(other);
@@ -173,57 +173,57 @@ Maintain& Maintain::operator=(const Maintain& other)
     return *this;
 }
 
-void Maintain::copy(const Maintain& other)
+void KingSend::copy(const KingSend& other)
 {
-    this->finalDecision = other.finalDecision;
+    this->intMsg = other.intMsg;
     this->sender = other.sender;
 }
 
-void Maintain::parsimPack(omnetpp::cCommBuffer *b) const
+void KingSend::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::omnetpp::cMessage::parsimPack(b);
-    doParsimPacking(b,this->finalDecision);
+    doParsimPacking(b,this->intMsg);
     doParsimPacking(b,this->sender);
 }
 
-void Maintain::parsimUnpack(omnetpp::cCommBuffer *b)
+void KingSend::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::omnetpp::cMessage::parsimUnpack(b);
-    doParsimUnpacking(b,this->finalDecision);
+    doParsimUnpacking(b,this->intMsg);
     doParsimUnpacking(b,this->sender);
 }
 
-int Maintain::getFinalDecision() const
+int KingSend::getIntMsg() const
 {
-    return this->finalDecision;
+    return this->intMsg;
 }
 
-void Maintain::setFinalDecision(int finalDecision)
+void KingSend::setIntMsg(int intMsg)
 {
-    this->finalDecision = finalDecision;
+    this->intMsg = intMsg;
 }
 
-int Maintain::getSender() const
+int KingSend::getSender() const
 {
     return this->sender;
 }
 
-void Maintain::setSender(int sender)
+void KingSend::setSender(int sender)
 {
     this->sender = sender;
 }
 
-class MaintainDescriptor : public omnetpp::cClassDescriptor
+class KingSendDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertyNames;
     enum FieldConstants {
-        FIELD_finalDecision,
+        FIELD_intMsg,
         FIELD_sender,
     };
   public:
-    MaintainDescriptor();
-    virtual ~MaintainDescriptor();
+    KingSendDescriptor();
+    virtual ~KingSendDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -249,24 +249,24 @@ class MaintainDescriptor : public omnetpp::cClassDescriptor
     virtual void setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const override;
 };
 
-Register_ClassDescriptor(MaintainDescriptor)
+Register_ClassDescriptor(KingSendDescriptor)
 
-MaintainDescriptor::MaintainDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(Maintain)), "omnetpp::cMessage")
+KingSendDescriptor::KingSendDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(KingSend)), "omnetpp::cMessage")
 {
     propertyNames = nullptr;
 }
 
-MaintainDescriptor::~MaintainDescriptor()
+KingSendDescriptor::~KingSendDescriptor()
 {
     delete[] propertyNames;
 }
 
-bool MaintainDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool KingSendDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<Maintain *>(obj)!=nullptr;
+    return dynamic_cast<KingSend *>(obj)!=nullptr;
 }
 
-const char **MaintainDescriptor::getPropertyNames() const
+const char **KingSendDescriptor::getPropertyNames() const
 {
     if (!propertyNames) {
         static const char *names[] = {  nullptr };
@@ -277,19 +277,19 @@ const char **MaintainDescriptor::getPropertyNames() const
     return propertyNames;
 }
 
-const char *MaintainDescriptor::getProperty(const char *propertyName) const
+const char *KingSendDescriptor::getProperty(const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? base->getProperty(propertyName) : nullptr;
 }
 
-int MaintainDescriptor::getFieldCount() const
+int KingSendDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? 2+base->getFieldCount() : 2;
 }
 
-unsigned int MaintainDescriptor::getFieldTypeFlags(int field) const
+unsigned int KingSendDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -298,13 +298,13 @@ unsigned int MaintainDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_finalDecision
+        FD_ISEDITABLE,    // FIELD_intMsg
         FD_ISEDITABLE,    // FIELD_sender
     };
     return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
 }
 
-const char *MaintainDescriptor::getFieldName(int field) const
+const char *KingSendDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -313,22 +313,22 @@ const char *MaintainDescriptor::getFieldName(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "finalDecision",
+        "intMsg",
         "sender",
     };
     return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
 }
 
-int MaintainDescriptor::findField(const char *fieldName) const
+int KingSendDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
-    if (strcmp(fieldName, "finalDecision") == 0) return baseIndex + 0;
+    if (strcmp(fieldName, "intMsg") == 0) return baseIndex + 0;
     if (strcmp(fieldName, "sender") == 0) return baseIndex + 1;
     return base ? base->findField(fieldName) : -1;
 }
 
-const char *MaintainDescriptor::getFieldTypeString(int field) const
+const char *KingSendDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -337,13 +337,13 @@ const char *MaintainDescriptor::getFieldTypeString(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_finalDecision
+        "int",    // FIELD_intMsg
         "int",    // FIELD_sender
     };
     return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **MaintainDescriptor::getFieldPropertyNames(int field) const
+const char **KingSendDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -356,7 +356,7 @@ const char **MaintainDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *MaintainDescriptor::getFieldProperty(int field, const char *propertyName) const
+const char *KingSendDescriptor::getFieldProperty(int field, const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -369,7 +369,7 @@ const char *MaintainDescriptor::getFieldProperty(int field, const char *property
     }
 }
 
-int MaintainDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
+int KingSendDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -377,13 +377,13 @@ int MaintainDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) co
             return base->getFieldArraySize(object, field);
         field -= base->getFieldCount();
     }
-    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
+    KingSend *pp = omnetpp::fromAnyPtr<KingSend>(object); (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-void MaintainDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
+void KingSendDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -393,13 +393,13 @@ void MaintainDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, i
         }
         field -= base->getFieldCount();
     }
-    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
+    KingSend *pp = omnetpp::fromAnyPtr<KingSend>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'Maintain'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'KingSend'", field);
     }
 }
 
-const char *MaintainDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
+const char *KingSendDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -407,13 +407,13 @@ const char *MaintainDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr objec
             return base->getFieldDynamicTypeString(object,field,i);
         field -= base->getFieldCount();
     }
-    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
+    KingSend *pp = omnetpp::fromAnyPtr<KingSend>(object); (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string MaintainDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
+std::string KingSendDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -421,15 +421,15 @@ std::string MaintainDescriptor::getFieldValueAsString(omnetpp::any_ptr object, i
             return base->getFieldValueAsString(object,field,i);
         field -= base->getFieldCount();
     }
-    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
+    KingSend *pp = omnetpp::fromAnyPtr<KingSend>(object); (void)pp;
     switch (field) {
-        case FIELD_finalDecision: return long2string(pp->getFinalDecision());
+        case FIELD_intMsg: return long2string(pp->getIntMsg());
         case FIELD_sender: return long2string(pp->getSender());
         default: return "";
     }
 }
 
-void MaintainDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
+void KingSendDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -439,15 +439,15 @@ void MaintainDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int fiel
         }
         field -= base->getFieldCount();
     }
-    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
+    KingSend *pp = omnetpp::fromAnyPtr<KingSend>(object); (void)pp;
     switch (field) {
-        case FIELD_finalDecision: pp->setFinalDecision(string2long(value)); break;
+        case FIELD_intMsg: pp->setIntMsg(string2long(value)); break;
         case FIELD_sender: pp->setSender(string2long(value)); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Maintain'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'KingSend'", field);
     }
 }
 
-omnetpp::cValue MaintainDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
+omnetpp::cValue KingSendDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -455,15 +455,15 @@ omnetpp::cValue MaintainDescriptor::getFieldValue(omnetpp::any_ptr object, int f
             return base->getFieldValue(object,field,i);
         field -= base->getFieldCount();
     }
-    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
+    KingSend *pp = omnetpp::fromAnyPtr<KingSend>(object); (void)pp;
     switch (field) {
-        case FIELD_finalDecision: return pp->getFinalDecision();
+        case FIELD_intMsg: return pp->getIntMsg();
         case FIELD_sender: return pp->getSender();
-        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'Maintain' as cValue -- field index out of range?", field);
+        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'KingSend' as cValue -- field index out of range?", field);
     }
 }
 
-void MaintainDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
+void KingSendDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -473,15 +473,15 @@ void MaintainDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i
         }
         field -= base->getFieldCount();
     }
-    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
+    KingSend *pp = omnetpp::fromAnyPtr<KingSend>(object); (void)pp;
     switch (field) {
-        case FIELD_finalDecision: pp->setFinalDecision(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_intMsg: pp->setIntMsg(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_sender: pp->setSender(omnetpp::checked_int_cast<int>(value.intValue())); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Maintain'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'KingSend'", field);
     }
 }
 
-const char *MaintainDescriptor::getFieldStructName(int field) const
+const char *KingSendDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -494,7 +494,7 @@ const char *MaintainDescriptor::getFieldStructName(int field) const
     };
 }
 
-omnetpp::any_ptr MaintainDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
+omnetpp::any_ptr KingSendDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -502,13 +502,13 @@ omnetpp::any_ptr MaintainDescriptor::getFieldStructValuePointer(omnetpp::any_ptr
             return base->getFieldStructValuePointer(object, field, i);
         field -= base->getFieldCount();
     }
-    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
+    KingSend *pp = omnetpp::fromAnyPtr<KingSend>(object); (void)pp;
     switch (field) {
         default: return omnetpp::any_ptr(nullptr);
     }
 }
 
-void MaintainDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
+void KingSendDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -518,9 +518,9 @@ void MaintainDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int
         }
         field -= base->getFieldCount();
     }
-    Maintain *pp = omnetpp::fromAnyPtr<Maintain>(object); (void)pp;
+    KingSend *pp = omnetpp::fromAnyPtr<KingSend>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'Maintain'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'KingSend'", field);
     }
 }
 

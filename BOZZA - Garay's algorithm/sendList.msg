@@ -1,4 +1,4 @@
-message Decide {
+message SendList {
 
 	int data[];
 	int value;

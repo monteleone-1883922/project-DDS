@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgtool 6.0 from int.msg.
+// Generated file, do not edit! Created by opp_msgtool 6.0 from sendValue.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -28,7 +28,7 @@
 #include <sstream>
 #include <memory>
 #include <type_traits>
-#include "int_m.h"
+#include "sendValue_m.h"
 
 namespace omnetpp {
 
@@ -150,22 +150,22 @@ void doParsimUnpacking(omnetpp::cCommBuffer *, T& t)
 
 }  // namespace omnetpp
 
-Register_Class(IntegerMsg)
+Register_Class(SendValue)
 
-IntegerMsg::IntegerMsg(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
+SendValue::SendValue(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
 {
 }
 
-IntegerMsg::IntegerMsg(const IntegerMsg& other) : ::omnetpp::cMessage(other)
+SendValue::SendValue(const SendValue& other) : ::omnetpp::cMessage(other)
 {
     copy(other);
 }
 
-IntegerMsg::~IntegerMsg()
+SendValue::~SendValue()
 {
 }
 
-IntegerMsg& IntegerMsg::operator=(const IntegerMsg& other)
+SendValue& SendValue::operator=(const SendValue& other)
 {
     if (this == &other) return *this;
     ::omnetpp::cMessage::operator=(other);
@@ -173,47 +173,47 @@ IntegerMsg& IntegerMsg::operator=(const IntegerMsg& other)
     return *this;
 }
 
-void IntegerMsg::copy(const IntegerMsg& other)
+void SendValue::copy(const SendValue& other)
 {
     this->intMsg = other.intMsg;
     this->sender = other.sender;
 }
 
-void IntegerMsg::parsimPack(omnetpp::cCommBuffer *b) const
+void SendValue::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::omnetpp::cMessage::parsimPack(b);
     doParsimPacking(b,this->intMsg);
     doParsimPacking(b,this->sender);
 }
 
-void IntegerMsg::parsimUnpack(omnetpp::cCommBuffer *b)
+void SendValue::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::omnetpp::cMessage::parsimUnpack(b);
     doParsimUnpacking(b,this->intMsg);
     doParsimUnpacking(b,this->sender);
 }
 
-int IntegerMsg::getIntMsg() const
+int SendValue::getIntMsg() const
 {
     return this->intMsg;
 }
 
-void IntegerMsg::setIntMsg(int intMsg)
+void SendValue::setIntMsg(int intMsg)
 {
     this->intMsg = intMsg;
 }
 
-int IntegerMsg::getSender() const
+int SendValue::getSender() const
 {
     return this->sender;
 }
 
-void IntegerMsg::setSender(int sender)
+void SendValue::setSender(int sender)
 {
     this->sender = sender;
 }
 
-class IntegerMsgDescriptor : public omnetpp::cClassDescriptor
+class SendValueDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertyNames;
@@ -222,8 +222,8 @@ class IntegerMsgDescriptor : public omnetpp::cClassDescriptor
         FIELD_sender,
     };
   public:
-    IntegerMsgDescriptor();
-    virtual ~IntegerMsgDescriptor();
+    SendValueDescriptor();
+    virtual ~SendValueDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -249,24 +249,24 @@ class IntegerMsgDescriptor : public omnetpp::cClassDescriptor
     virtual void setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const override;
 };
 
-Register_ClassDescriptor(IntegerMsgDescriptor)
+Register_ClassDescriptor(SendValueDescriptor)
 
-IntegerMsgDescriptor::IntegerMsgDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(IntegerMsg)), "omnetpp::cMessage")
+SendValueDescriptor::SendValueDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(SendValue)), "omnetpp::cMessage")
 {
     propertyNames = nullptr;
 }
 
-IntegerMsgDescriptor::~IntegerMsgDescriptor()
+SendValueDescriptor::~SendValueDescriptor()
 {
     delete[] propertyNames;
 }
 
-bool IntegerMsgDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool SendValueDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<IntegerMsg *>(obj)!=nullptr;
+    return dynamic_cast<SendValue *>(obj)!=nullptr;
 }
 
-const char **IntegerMsgDescriptor::getPropertyNames() const
+const char **SendValueDescriptor::getPropertyNames() const
 {
     if (!propertyNames) {
         static const char *names[] = {  nullptr };
@@ -277,19 +277,19 @@ const char **IntegerMsgDescriptor::getPropertyNames() const
     return propertyNames;
 }
 
-const char *IntegerMsgDescriptor::getProperty(const char *propertyName) const
+const char *SendValueDescriptor::getProperty(const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? base->getProperty(propertyName) : nullptr;
 }
 
-int IntegerMsgDescriptor::getFieldCount() const
+int SendValueDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? 2+base->getFieldCount() : 2;
 }
 
-unsigned int IntegerMsgDescriptor::getFieldTypeFlags(int field) const
+unsigned int SendValueDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -304,7 +304,7 @@ unsigned int IntegerMsgDescriptor::getFieldTypeFlags(int field) const
     return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
 }
 
-const char *IntegerMsgDescriptor::getFieldName(int field) const
+const char *SendValueDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -319,7 +319,7 @@ const char *IntegerMsgDescriptor::getFieldName(int field) const
     return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
 }
 
-int IntegerMsgDescriptor::findField(const char *fieldName) const
+int SendValueDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
@@ -328,7 +328,7 @@ int IntegerMsgDescriptor::findField(const char *fieldName) const
     return base ? base->findField(fieldName) : -1;
 }
 
-const char *IntegerMsgDescriptor::getFieldTypeString(int field) const
+const char *SendValueDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -343,7 +343,7 @@ const char *IntegerMsgDescriptor::getFieldTypeString(int field) const
     return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **IntegerMsgDescriptor::getFieldPropertyNames(int field) const
+const char **SendValueDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -356,7 +356,7 @@ const char **IntegerMsgDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *IntegerMsgDescriptor::getFieldProperty(int field, const char *propertyName) const
+const char *SendValueDescriptor::getFieldProperty(int field, const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -369,7 +369,7 @@ const char *IntegerMsgDescriptor::getFieldProperty(int field, const char *proper
     }
 }
 
-int IntegerMsgDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
+int SendValueDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -377,13 +377,13 @@ int IntegerMsgDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) 
             return base->getFieldArraySize(object, field);
         field -= base->getFieldCount();
     }
-    IntegerMsg *pp = omnetpp::fromAnyPtr<IntegerMsg>(object); (void)pp;
+    SendValue *pp = omnetpp::fromAnyPtr<SendValue>(object); (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-void IntegerMsgDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
+void SendValueDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -393,13 +393,13 @@ void IntegerMsgDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field,
         }
         field -= base->getFieldCount();
     }
-    IntegerMsg *pp = omnetpp::fromAnyPtr<IntegerMsg>(object); (void)pp;
+    SendValue *pp = omnetpp::fromAnyPtr<SendValue>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'IntegerMsg'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'SendValue'", field);
     }
 }
 
-const char *IntegerMsgDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
+const char *SendValueDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -407,13 +407,13 @@ const char *IntegerMsgDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr obj
             return base->getFieldDynamicTypeString(object,field,i);
         field -= base->getFieldCount();
     }
-    IntegerMsg *pp = omnetpp::fromAnyPtr<IntegerMsg>(object); (void)pp;
+    SendValue *pp = omnetpp::fromAnyPtr<SendValue>(object); (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string IntegerMsgDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
+std::string SendValueDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -421,7 +421,7 @@ std::string IntegerMsgDescriptor::getFieldValueAsString(omnetpp::any_ptr object,
             return base->getFieldValueAsString(object,field,i);
         field -= base->getFieldCount();
     }
-    IntegerMsg *pp = omnetpp::fromAnyPtr<IntegerMsg>(object); (void)pp;
+    SendValue *pp = omnetpp::fromAnyPtr<SendValue>(object); (void)pp;
     switch (field) {
         case FIELD_intMsg: return long2string(pp->getIntMsg());
         case FIELD_sender: return long2string(pp->getSender());
@@ -429,7 +429,7 @@ std::string IntegerMsgDescriptor::getFieldValueAsString(omnetpp::any_ptr object,
     }
 }
 
-void IntegerMsgDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
+void SendValueDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -439,15 +439,15 @@ void IntegerMsgDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int fi
         }
         field -= base->getFieldCount();
     }
-    IntegerMsg *pp = omnetpp::fromAnyPtr<IntegerMsg>(object); (void)pp;
+    SendValue *pp = omnetpp::fromAnyPtr<SendValue>(object); (void)pp;
     switch (field) {
         case FIELD_intMsg: pp->setIntMsg(string2long(value)); break;
         case FIELD_sender: pp->setSender(string2long(value)); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'IntegerMsg'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'SendValue'", field);
     }
 }
 
-omnetpp::cValue IntegerMsgDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
+omnetpp::cValue SendValueDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -455,15 +455,15 @@ omnetpp::cValue IntegerMsgDescriptor::getFieldValue(omnetpp::any_ptr object, int
             return base->getFieldValue(object,field,i);
         field -= base->getFieldCount();
     }
-    IntegerMsg *pp = omnetpp::fromAnyPtr<IntegerMsg>(object); (void)pp;
+    SendValue *pp = omnetpp::fromAnyPtr<SendValue>(object); (void)pp;
     switch (field) {
         case FIELD_intMsg: return pp->getIntMsg();
         case FIELD_sender: return pp->getSender();
-        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'IntegerMsg' as cValue -- field index out of range?", field);
+        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'SendValue' as cValue -- field index out of range?", field);
     }
 }
 
-void IntegerMsgDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
+void SendValueDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -473,15 +473,15 @@ void IntegerMsgDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int
         }
         field -= base->getFieldCount();
     }
-    IntegerMsg *pp = omnetpp::fromAnyPtr<IntegerMsg>(object); (void)pp;
+    SendValue *pp = omnetpp::fromAnyPtr<SendValue>(object); (void)pp;
     switch (field) {
         case FIELD_intMsg: pp->setIntMsg(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_sender: pp->setSender(omnetpp::checked_int_cast<int>(value.intValue())); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'IntegerMsg'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'SendValue'", field);
     }
 }
 
-const char *IntegerMsgDescriptor::getFieldStructName(int field) const
+const char *SendValueDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -494,7 +494,7 @@ const char *IntegerMsgDescriptor::getFieldStructName(int field) const
     };
 }
 
-omnetpp::any_ptr IntegerMsgDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
+omnetpp::any_ptr SendValueDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -502,13 +502,13 @@ omnetpp::any_ptr IntegerMsgDescriptor::getFieldStructValuePointer(omnetpp::any_p
             return base->getFieldStructValuePointer(object, field, i);
         field -= base->getFieldCount();
     }
-    IntegerMsg *pp = omnetpp::fromAnyPtr<IntegerMsg>(object); (void)pp;
+    SendValue *pp = omnetpp::fromAnyPtr<SendValue>(object); (void)pp;
     switch (field) {
         default: return omnetpp::any_ptr(nullptr);
     }
 }
 
-void IntegerMsgDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
+void SendValueDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -518,9 +518,9 @@ void IntegerMsgDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, i
         }
         field -= base->getFieldCount();
     }
-    IntegerMsg *pp = omnetpp::fromAnyPtr<IntegerMsg>(object); (void)pp;
+    SendValue *pp = omnetpp::fromAnyPtr<SendValue>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'IntegerMsg'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'SendValue'", field);
     }
 }
 

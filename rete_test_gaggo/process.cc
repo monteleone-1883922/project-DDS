@@ -33,6 +33,7 @@ private:
     int *infectableProcess;
     int indexCorrectProcess = 2;
     int *setProcess;
+    int *result;
 
 protected:
     virtual void initialize();
@@ -82,14 +83,14 @@ void process::updateInfected(int *arrayUpdated, int num) {
     std::mt19937 generator(rd());
     //EV <<"updateInfected:::::numero di processi infettabili" <<num <<endl;
     if (num >= numSubmodules - numInfected) {
-        std::uniform_int_distribution<int> distributionInf(0, num - 1);
+        std::uniform_int_distribution<int> distributionInf(0, num - 1); //NON MODIFICARE
         int indexInf = distributionInf(generator);
-        //  EV <<"updateInfected::::indice che verrà infettato: " <<indexInf <<endl;
+        // EV <<"updateInfected::::indice che verrà infettato: " <<indexInf <<endl;
         processInfected[numSubmodules - num - 1] = arrayUpdated[indexInf];
         updateInfected(createNewArrayInfectable(num, arrayUpdated, indexInf),
                 num - 1);
     } else {
-        infected = updateInfectedStatus();
+        //infected = updateInfectedStatus();
         sendNewInfected(processInfected);
         //printVector(getIndex(), processInfected, "updateInfected::::Nuova Lista processi infetti", numInfected);
     }
@@ -241,6 +242,7 @@ void process::initialize() {
     // si salva il numero di moduli presenti e inizializza il vettore in modo che abbia una cella per ogni modulo
     cModule *topLevelModule = getModuleByPath("Topology");
     numSubmodules = topLevelModule->getSubmoduleVectorSize("process");
+
     //inizializza le liste
     PV = new int[numSubmodules]();
     for (int i = 0; i < numSubmodules; i++) {
@@ -339,9 +341,10 @@ void process::handleMessage(cMessage *msg) {
         // inserisce il numero ricevuto nell array del modulo ricevente nella posizione dedicata al modulo sender
         PV[my_msg->getSender()] = my_msg->getIntMsg();
         recivedPV++; //per ora non viene utilizzato
-        printVector(getIndex(), PV, "PV", numSubmodules);
+
         if (recivedPV == numSubmodules) {
             EV << "Ho ricevuto tutte le proposte \n";
+            printVector(getIndex(), PV, "PV", numSubmodules);
             decided = -1;
             myNum = canIdecide(getIndex(), numSubmodules - 2 * numInfected, PV);
             recivedPV = 0;
@@ -423,18 +426,19 @@ void process::handleMessage(cMessage *msg) {
             EV << "FINITI 3 ROUND - S= : " << s << endl;
             s++;
             if (s < numSubmodules) {
-                decided = myNum;
+
                 if (getIndex() == 0) {
                     updateInfected(infectableProcess, numSubmodules - 1);
                     printVector(getIndex(), setProcess,
-                            "INIT:::Set dei processi: ", numSubmodules);
+                            "DEC:::Set dei processi: ", numSubmodules);
                     printVector(getIndex(), infectableProcess,
-                            "INIT:::Set dei processi infettabili:",
+                            "DEC:::Set dei processi infettabili:",
                             numSubmodules - 1);
                     printVector(getIndex(), processInfected,
-                            "INIT:::Set dei processi infettati:", numInfected);
+                            "DEC:::Set dei processi infettati:", numInfected);
                 }
             } else {
+                decided = myNum;
                 //MAINTAINING ROUND
                 maintain(decided);
             }
@@ -443,13 +447,23 @@ void process::handleMessage(cMessage *msg) {
     }
     if (dynamic_cast<Maintain*>(msg)) {
         Maintain *my_msg = check_and_cast<Maintain*>(msg);
-        int *result;
+
         // inserisce il numero ricevuto nell array del modulo ricevente nella posizione dedicata al modulo sender
         result[my_msg->getSender()] = my_msg->getFinalDecision();
         recivedMaintain++; //per ora non viene utilizzato
         if (recivedMaintain == numSubmodules) {
-            EV << "Ho ricevuto tutte le proposte \n";
-            decided = canIdecide(getIndex(), numSubmodules - 2 * infected,
+            if (getIndex() == 0) {
+                updateInfected(infectableProcess, numSubmodules - 1);
+                printVector(getIndex(), setProcess, "MAINT:::Set dei processi: ",
+                        numSubmodules);
+                printVector(getIndex(), infectableProcess,
+                        "MAINT:::Set dei processi infettabili:",
+                        numSubmodules - 1);
+                printVector(getIndex(), processInfected,
+                        "MAINT:::Set dei processi infettati:", numInfected);
+            }
+            EV << "Ho ricevuto tutte le proposte di maintain \n";
+            decided = canIdecide(getIndex(), numSubmodules - 2 * numInfected,
                     result);
             recivedMaintain = 0;
             maintain(decided);

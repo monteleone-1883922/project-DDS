@@ -1,5 +1,5 @@
 #
-# OMNeT++/OMNEST Makefile for rete
+# OMNeT++/OMNEST Makefile for Garay's alg
 #
 # This file was generated with the command:
 #  opp_makemake -f --deep -O out -I.
@@ -7,7 +7,7 @@
 
 # Name of target to be created (-o option)
 TARGET_DIR = .
-TARGET_NAME = rete$(D)
+TARGET_NAME = Garay's alg$(D)
 TARGET = $(TARGET_NAME)$(EXE_SUFFIX)
 TARGET_IMPLIB = $(TARGET_NAME)$(IMPLIB_SUFFIX)
 TARGET_IMPDEF = $(TARGET_NAME)$(IMPDEF_SUFFIX)
@@ -36,25 +36,17 @@ O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 OBJS = \
     $O/MyMessage.o \
     $O/process.o \
-    $O/collect_m.o \
-    $O/decide_m.o \
     $O/infected_m.o \
-    $O/infection_m.o \
-    $O/int_m.o \
-    $O/maintain_m.o \
-    $O/proposal_m.o \
-    $O/vector_m.o
+    $O/kingSend_m.o \
+    $O/sendList_m.o \
+    $O/sendValue_m.o
 
 # Message files
 MSGFILES = \
-    collect.msg \
-    decide.msg \
     infected.msg \
-    infection.msg \
-    int.msg \
-    maintain.msg \
-    proposal.msg \
-    vector.msg
+    kingSend.msg \
+    sendList.msg \
+    sendValue.msg
 
 # SM files
 SMFILES =

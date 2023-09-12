@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by opp_msgtool 6.0 from collect.msg.
+// Generated file, do not edit! Created by opp_msgtool 6.0 from sendList.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -28,7 +28,7 @@
 #include <sstream>
 #include <memory>
 #include <type_traits>
-#include "collect_m.h"
+#include "sendList_m.h"
 
 namespace omnetpp {
 
@@ -150,22 +150,23 @@ void doParsimUnpacking(omnetpp::cCommBuffer *, T& t)
 
 }  // namespace omnetpp
 
-Register_Class(CollectMsg)
+Register_Class(SendList)
 
-CollectMsg::CollectMsg(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
+SendList::SendList(const char *name, short kind) : ::omnetpp::cMessage(name, kind)
 {
 }
 
-CollectMsg::CollectMsg(const CollectMsg& other) : ::omnetpp::cMessage(other)
+SendList::SendList(const SendList& other) : ::omnetpp::cMessage(other)
 {
     copy(other);
 }
 
-CollectMsg::~CollectMsg()
+SendList::~SendList()
 {
+    delete [] this->data;
 }
 
-CollectMsg& CollectMsg::operator=(const CollectMsg& other)
+SendList& SendList::operator=(const SendList& other)
 {
     if (this == &other) return *this;
     ::omnetpp::cMessage::operator=(other);
@@ -173,57 +174,140 @@ CollectMsg& CollectMsg::operator=(const CollectMsg& other)
     return *this;
 }
 
-void CollectMsg::copy(const CollectMsg& other)
+void SendList::copy(const SendList& other)
 {
-    this->intMsg = other.intMsg;
+    delete [] this->data;
+    this->data = (other.data_arraysize==0) ? nullptr : new int[other.data_arraysize];
+    data_arraysize = other.data_arraysize;
+    for (size_t i = 0; i < data_arraysize; i++) {
+        this->data[i] = other.data[i];
+    }
+    this->value = other.value;
     this->sender = other.sender;
 }
 
-void CollectMsg::parsimPack(omnetpp::cCommBuffer *b) const
+void SendList::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::omnetpp::cMessage::parsimPack(b);
-    doParsimPacking(b,this->intMsg);
+    b->pack(data_arraysize);
+    doParsimArrayPacking(b,this->data,data_arraysize);
+    doParsimPacking(b,this->value);
     doParsimPacking(b,this->sender);
 }
 
-void CollectMsg::parsimUnpack(omnetpp::cCommBuffer *b)
+void SendList::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::omnetpp::cMessage::parsimUnpack(b);
-    doParsimUnpacking(b,this->intMsg);
+    delete [] this->data;
+    b->unpack(data_arraysize);
+    if (data_arraysize == 0) {
+        this->data = nullptr;
+    } else {
+        this->data = new int[data_arraysize];
+        doParsimArrayUnpacking(b,this->data,data_arraysize);
+    }
+    doParsimUnpacking(b,this->value);
     doParsimUnpacking(b,this->sender);
 }
 
-int CollectMsg::getIntMsg() const
+size_t SendList::getDataArraySize() const
 {
-    return this->intMsg;
+    return data_arraysize;
 }
 
-void CollectMsg::setIntMsg(int intMsg)
+int SendList::getData(size_t k) const
 {
-    this->intMsg = intMsg;
+    if (k >= data_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)data_arraysize, (unsigned long)k);
+    return this->data[k];
 }
 
-int CollectMsg::getSender() const
+void SendList::setDataArraySize(size_t newSize)
+{
+    int *data2 = (newSize==0) ? nullptr : new int[newSize];
+    size_t minSize = data_arraysize < newSize ? data_arraysize : newSize;
+    for (size_t i = 0; i < minSize; i++)
+        data2[i] = this->data[i];
+    for (size_t i = minSize; i < newSize; i++)
+        data2[i] = 0;
+    delete [] this->data;
+    this->data = data2;
+    data_arraysize = newSize;
+}
+
+void SendList::setData(size_t k, int data)
+{
+    if (k >= data_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)data_arraysize, (unsigned long)k);
+    this->data[k] = data;
+}
+
+void SendList::insertData(size_t k, int data)
+{
+    if (k > data_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)data_arraysize, (unsigned long)k);
+    size_t newSize = data_arraysize + 1;
+    int *data2 = new int[newSize];
+    size_t i;
+    for (i = 0; i < k; i++)
+        data2[i] = this->data[i];
+    data2[k] = data;
+    for (i = k + 1; i < newSize; i++)
+        data2[i] = this->data[i-1];
+    delete [] this->data;
+    this->data = data2;
+    data_arraysize = newSize;
+}
+
+void SendList::appendData(int data)
+{
+    insertData(data_arraysize, data);
+}
+
+void SendList::eraseData(size_t k)
+{
+    if (k >= data_arraysize) throw omnetpp::cRuntimeError("Array of size %lu indexed by %lu", (unsigned long)data_arraysize, (unsigned long)k);
+    size_t newSize = data_arraysize - 1;
+    int *data2 = (newSize == 0) ? nullptr : new int[newSize];
+    size_t i;
+    for (i = 0; i < k; i++)
+        data2[i] = this->data[i];
+    for (i = k; i < newSize; i++)
+        data2[i] = this->data[i+1];
+    delete [] this->data;
+    this->data = data2;
+    data_arraysize = newSize;
+}
+
+int SendList::getValue() const
+{
+    return this->value;
+}
+
+void SendList::setValue(int value)
+{
+    this->value = value;
+}
+
+int SendList::getSender() const
 {
     return this->sender;
 }
 
-void CollectMsg::setSender(int sender)
+void SendList::setSender(int sender)
 {
     this->sender = sender;
 }
 
-class CollectMsgDescriptor : public omnetpp::cClassDescriptor
+class SendListDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertyNames;
     enum FieldConstants {
-        FIELD_intMsg,
+        FIELD_data,
+        FIELD_value,
         FIELD_sender,
     };
   public:
-    CollectMsgDescriptor();
-    virtual ~CollectMsgDescriptor();
+    SendListDescriptor();
+    virtual ~SendListDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -249,24 +333,24 @@ class CollectMsgDescriptor : public omnetpp::cClassDescriptor
     virtual void setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const override;
 };
 
-Register_ClassDescriptor(CollectMsgDescriptor)
+Register_ClassDescriptor(SendListDescriptor)
 
-CollectMsgDescriptor::CollectMsgDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(CollectMsg)), "omnetpp::cMessage")
+SendListDescriptor::SendListDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(SendList)), "omnetpp::cMessage")
 {
     propertyNames = nullptr;
 }
 
-CollectMsgDescriptor::~CollectMsgDescriptor()
+SendListDescriptor::~SendListDescriptor()
 {
     delete[] propertyNames;
 }
 
-bool CollectMsgDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool SendListDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<CollectMsg *>(obj)!=nullptr;
+    return dynamic_cast<SendList *>(obj)!=nullptr;
 }
 
-const char **CollectMsgDescriptor::getPropertyNames() const
+const char **SendListDescriptor::getPropertyNames() const
 {
     if (!propertyNames) {
         static const char *names[] = {  nullptr };
@@ -277,19 +361,19 @@ const char **CollectMsgDescriptor::getPropertyNames() const
     return propertyNames;
 }
 
-const char *CollectMsgDescriptor::getProperty(const char *propertyName) const
+const char *SendListDescriptor::getProperty(const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     return base ? base->getProperty(propertyName) : nullptr;
 }
 
-int CollectMsgDescriptor::getFieldCount() const
+int SendListDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
-    return base ? 2+base->getFieldCount() : 2;
+    return base ? 3+base->getFieldCount() : 3;
 }
 
-unsigned int CollectMsgDescriptor::getFieldTypeFlags(int field) const
+unsigned int SendListDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -298,13 +382,14 @@ unsigned int CollectMsgDescriptor::getFieldTypeFlags(int field) const
         field -= base->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_intMsg
+        FD_ISARRAY | FD_ISEDITABLE | FD_ISRESIZABLE,    // FIELD_data
+        FD_ISEDITABLE,    // FIELD_value
         FD_ISEDITABLE,    // FIELD_sender
     };
-    return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 3) ? fieldTypeFlags[field] : 0;
 }
 
-const char *CollectMsgDescriptor::getFieldName(int field) const
+const char *SendListDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -313,22 +398,24 @@ const char *CollectMsgDescriptor::getFieldName(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "intMsg",
+        "data",
+        "value",
         "sender",
     };
-    return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 3) ? fieldNames[field] : nullptr;
 }
 
-int CollectMsgDescriptor::findField(const char *fieldName) const
+int SendListDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     int baseIndex = base ? base->getFieldCount() : 0;
-    if (strcmp(fieldName, "intMsg") == 0) return baseIndex + 0;
-    if (strcmp(fieldName, "sender") == 0) return baseIndex + 1;
+    if (strcmp(fieldName, "data") == 0) return baseIndex + 0;
+    if (strcmp(fieldName, "value") == 0) return baseIndex + 1;
+    if (strcmp(fieldName, "sender") == 0) return baseIndex + 2;
     return base ? base->findField(fieldName) : -1;
 }
 
-const char *CollectMsgDescriptor::getFieldTypeString(int field) const
+const char *SendListDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -337,13 +424,14 @@ const char *CollectMsgDescriptor::getFieldTypeString(int field) const
         field -= base->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_intMsg
+        "int",    // FIELD_data
+        "int",    // FIELD_value
         "int",    // FIELD_sender
     };
-    return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 3) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **CollectMsgDescriptor::getFieldPropertyNames(int field) const
+const char **SendListDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -356,7 +444,7 @@ const char **CollectMsgDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *CollectMsgDescriptor::getFieldProperty(int field, const char *propertyName) const
+const char *SendListDescriptor::getFieldProperty(int field, const char *propertyName) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -369,7 +457,7 @@ const char *CollectMsgDescriptor::getFieldProperty(int field, const char *proper
     }
 }
 
-int CollectMsgDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
+int SendListDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -377,13 +465,14 @@ int CollectMsgDescriptor::getFieldArraySize(omnetpp::any_ptr object, int field) 
             return base->getFieldArraySize(object, field);
         field -= base->getFieldCount();
     }
-    CollectMsg *pp = omnetpp::fromAnyPtr<CollectMsg>(object); (void)pp;
+    SendList *pp = omnetpp::fromAnyPtr<SendList>(object); (void)pp;
     switch (field) {
+        case FIELD_data: return pp->getDataArraySize();
         default: return 0;
     }
 }
 
-void CollectMsgDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
+void SendListDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field, int size) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -393,13 +482,14 @@ void CollectMsgDescriptor::setFieldArraySize(omnetpp::any_ptr object, int field,
         }
         field -= base->getFieldCount();
     }
-    CollectMsg *pp = omnetpp::fromAnyPtr<CollectMsg>(object); (void)pp;
+    SendList *pp = omnetpp::fromAnyPtr<SendList>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'CollectMsg'", field);
+        case FIELD_data: pp->setDataArraySize(size); break;
+        default: throw omnetpp::cRuntimeError("Cannot set array size of field %d of class 'SendList'", field);
     }
 }
 
-const char *CollectMsgDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
+const char *SendListDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -407,13 +497,13 @@ const char *CollectMsgDescriptor::getFieldDynamicTypeString(omnetpp::any_ptr obj
             return base->getFieldDynamicTypeString(object,field,i);
         field -= base->getFieldCount();
     }
-    CollectMsg *pp = omnetpp::fromAnyPtr<CollectMsg>(object); (void)pp;
+    SendList *pp = omnetpp::fromAnyPtr<SendList>(object); (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string CollectMsgDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
+std::string SendListDescriptor::getFieldValueAsString(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -421,15 +511,16 @@ std::string CollectMsgDescriptor::getFieldValueAsString(omnetpp::any_ptr object,
             return base->getFieldValueAsString(object,field,i);
         field -= base->getFieldCount();
     }
-    CollectMsg *pp = omnetpp::fromAnyPtr<CollectMsg>(object); (void)pp;
+    SendList *pp = omnetpp::fromAnyPtr<SendList>(object); (void)pp;
     switch (field) {
-        case FIELD_intMsg: return long2string(pp->getIntMsg());
+        case FIELD_data: return long2string(pp->getData(i));
+        case FIELD_value: return long2string(pp->getValue());
         case FIELD_sender: return long2string(pp->getSender());
         default: return "";
     }
 }
 
-void CollectMsgDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
+void SendListDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -439,15 +530,16 @@ void CollectMsgDescriptor::setFieldValueAsString(omnetpp::any_ptr object, int fi
         }
         field -= base->getFieldCount();
     }
-    CollectMsg *pp = omnetpp::fromAnyPtr<CollectMsg>(object); (void)pp;
+    SendList *pp = omnetpp::fromAnyPtr<SendList>(object); (void)pp;
     switch (field) {
-        case FIELD_intMsg: pp->setIntMsg(string2long(value)); break;
+        case FIELD_data: pp->setData(i,string2long(value)); break;
+        case FIELD_value: pp->setValue(string2long(value)); break;
         case FIELD_sender: pp->setSender(string2long(value)); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'CollectMsg'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'SendList'", field);
     }
 }
 
-omnetpp::cValue CollectMsgDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
+omnetpp::cValue SendListDescriptor::getFieldValue(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -455,15 +547,16 @@ omnetpp::cValue CollectMsgDescriptor::getFieldValue(omnetpp::any_ptr object, int
             return base->getFieldValue(object,field,i);
         field -= base->getFieldCount();
     }
-    CollectMsg *pp = omnetpp::fromAnyPtr<CollectMsg>(object); (void)pp;
+    SendList *pp = omnetpp::fromAnyPtr<SendList>(object); (void)pp;
     switch (field) {
-        case FIELD_intMsg: return pp->getIntMsg();
+        case FIELD_data: return pp->getData(i);
+        case FIELD_value: return pp->getValue();
         case FIELD_sender: return pp->getSender();
-        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'CollectMsg' as cValue -- field index out of range?", field);
+        default: throw omnetpp::cRuntimeError("Cannot return field %d of class 'SendList' as cValue -- field index out of range?", field);
     }
 }
 
-void CollectMsgDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
+void SendListDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int i, const omnetpp::cValue& value) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -473,15 +566,16 @@ void CollectMsgDescriptor::setFieldValue(omnetpp::any_ptr object, int field, int
         }
         field -= base->getFieldCount();
     }
-    CollectMsg *pp = omnetpp::fromAnyPtr<CollectMsg>(object); (void)pp;
+    SendList *pp = omnetpp::fromAnyPtr<SendList>(object); (void)pp;
     switch (field) {
-        case FIELD_intMsg: pp->setIntMsg(omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_data: pp->setData(i,omnetpp::checked_int_cast<int>(value.intValue())); break;
+        case FIELD_value: pp->setValue(omnetpp::checked_int_cast<int>(value.intValue())); break;
         case FIELD_sender: pp->setSender(omnetpp::checked_int_cast<int>(value.intValue())); break;
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'CollectMsg'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'SendList'", field);
     }
 }
 
-const char *CollectMsgDescriptor::getFieldStructName(int field) const
+const char *SendListDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -494,7 +588,7 @@ const char *CollectMsgDescriptor::getFieldStructName(int field) const
     };
 }
 
-omnetpp::any_ptr CollectMsgDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
+omnetpp::any_ptr SendListDescriptor::getFieldStructValuePointer(omnetpp::any_ptr object, int field, int i) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -502,13 +596,13 @@ omnetpp::any_ptr CollectMsgDescriptor::getFieldStructValuePointer(omnetpp::any_p
             return base->getFieldStructValuePointer(object, field, i);
         field -= base->getFieldCount();
     }
-    CollectMsg *pp = omnetpp::fromAnyPtr<CollectMsg>(object); (void)pp;
+    SendList *pp = omnetpp::fromAnyPtr<SendList>(object); (void)pp;
     switch (field) {
         default: return omnetpp::any_ptr(nullptr);
     }
 }
 
-void CollectMsgDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
+void SendListDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, int field, int i, omnetpp::any_ptr ptr) const
 {
     omnetpp::cClassDescriptor *base = getBaseClassDescriptor();
     if (base) {
@@ -518,9 +612,9 @@ void CollectMsgDescriptor::setFieldStructValuePointer(omnetpp::any_ptr object, i
         }
         field -= base->getFieldCount();
     }
-    CollectMsg *pp = omnetpp::fromAnyPtr<CollectMsg>(object); (void)pp;
+    SendList *pp = omnetpp::fromAnyPtr<SendList>(object); (void)pp;
     switch (field) {
-        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'CollectMsg'", field);
+        default: throw omnetpp::cRuntimeError("Cannot set field %d of class 'SendList'", field);
     }
 }
 
