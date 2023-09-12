@@ -65,7 +65,7 @@ void process::initialize() {
     //if (strcmp(getName(), "process0") == 0) {
         // Inizializza il generatore di numeri casuali con un seed
         std::mt19937 rng(42);
-        if (generateInfections(4,1,getIndex(),&rng)){
+        if (generateInfections(4,1,getIndex(),2,&rng)){
             infected = 1;
             EV << getIndex() << " is infected\n";
         }

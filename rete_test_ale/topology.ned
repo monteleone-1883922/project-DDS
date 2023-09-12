@@ -1,10 +1,14 @@
 network Topology
 {
+    parameters:
+        	int numInfected = 1;
+    
     types:
         channel Link extends ned.DelayChannel{
             delay = 1000ms;
         }
     submodules:
+        
         process[4]: process ;
         
     connections:
