@@ -65,6 +65,7 @@ void process::initialize() {
 
         if (generateInfections(4,1,getIndex(),42)){
             infected = 1;
+            EV << getIndex() << " is infected";
         }
         std::random_device rd;
         std::mt19937 generator(rd());
