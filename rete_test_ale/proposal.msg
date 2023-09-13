@@ -1,5 +1,5 @@
 message ProposalMsg
 	{
-	    int intMsg;
+	    int value;
 	    int sender;
 	}

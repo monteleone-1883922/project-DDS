@@ -1,5 +1,5 @@
 message CollectMsg
 	{
-	    int intMsg;
+	    int value;
 	    int sender;
 	}
