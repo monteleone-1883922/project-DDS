@@ -143,7 +143,7 @@ void process::maintain(int decision,int numProcesses, bool infected) {
             msg->setFinalDecision(decision);
         }
         else{
-            int w = intuniform(0,1);
+            int w = intuniform(-1,1);
             msg->setFinalDecision(w);
         }
         msg->setSender(getIndex());
@@ -163,7 +163,7 @@ void process::propose(int v,int numProcesses, bool infected) {
         } else {
 
             // Genera un numero casuale tra 0 e 1
-            int w = intuniform(0,1);
+            int w = intuniform(-1,1);
             msg->setValue(w);
             EV << "mando sul gate" << i << "il valore " << w << endl;
         }
@@ -185,7 +185,7 @@ void process::collect(int v,int numProcesses, bool infected) {
         } else {
 
             // Genera un numero casuale tra 0 e 1
-            int w = intuniform(0,1);
+            int w = intuniform(-1,1);
             msg->setValue(w);
             EV << "mando sul gate" << i << "il valore " << w << endl;
         }
@@ -205,7 +205,7 @@ void process::decide(int value, int *Sv,int numSubmodules, bool infected) {
         if (!infected)
             msg->setData(i, Sv[i]); // Popola l'array con i dati desiderati
         else {
-            msg->setData(i, intuniform(0,1));
+            msg->setData(i, intuniform(-1,1));
         }
 
         msg->setSender(getIndex());
@@ -241,7 +241,7 @@ void process::initialize() {
     createNewArrayInfectable(numSubmodules,&infectableProcesses,indexCorrectProcess);
     numInfected = network->par("numInfected");
     // Genera un numero casuale tra 0 e 1
-    myNum = intuniform(0,1);
+    myNum = intuniform(-1,1);
 
     //INIZIALIZZO GLI INFETTI
     infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng);
@@ -261,9 +261,10 @@ void process::handleMessage(cMessage *msg) {
     if (dynamic_cast<ProposalMsg*>(msg)) {
 
         ProposalMsg *my_msg = check_and_cast<ProposalMsg*>(msg);
-
-        // inserisce il numero ricevuto nell array del modulo ricevente nella posizione dedicata al modulo sender
-        PV[my_msg->getSender()] = my_msg->getValue();
+        if (!infected)
+            PV[my_msg->getSender()] = my_msg->getValue();
+        else
+            PV[my_msg->getSender()] = intuniform(-1,1);
         receivedPV++; //per ora non viene utilizzato
         WATCH(receivedPV);
         printVector(getIndex(), PV, "PV", numSubmodules);
@@ -284,7 +285,10 @@ void process::handleMessage(cMessage *msg) {
     //SCOMMENTARE
     if (dynamic_cast<CollectMsg*>(msg)) {
         CollectMsg *cMsg = check_and_cast<CollectMsg*>(msg);
-        SV[cMsg->getSender()] = cMsg->getValue();
+        if (!infected)
+            SV[cMsg->getSender()] = cMsg->getValue();
+        else
+            SV[cMsg->getSender()] = intuniform(-1,1);
         receivedSV++;
         printVector(getIndex(), SV, "SV", numSubmodules);
         if (receivedSV == numSubmodules) {
@@ -304,7 +308,11 @@ void process::handleMessage(cMessage *msg) {
         int sender = myMsg->getSender(); //mi salvo il sender
         //salvo l'array ricevuto nella riga del sender
         for (int i = 0; i < numSubmodules; i++) {
-            int element = myMsg->getData(i);
+            int element;
+            if (!infected)
+                element = myMsg->getData(i);
+            else
+                element = intuniform(-1,1);
             Ev[sender][i] = element;
         }
         if (receivedEv == numSubmodules) { //se ho ricevuto gli array da tutti
@@ -361,20 +369,24 @@ void process::handleMessage(cMessage *msg) {
     if (dynamic_cast<Maintain*>(msg)) {
         Maintain *my_msg = check_and_cast<Maintain*>(msg);
 
-        // inserisce il numero ricevuto nell array del modulo ricevente nella posizione dedicata al modulo sender
-        result[my_msg->getSender()] = my_msg->getFinalDecision();
+        if (!infected)
+            result[my_msg->getSender()] = my_msg->getFinalDecision();
+        else
+            result[my_msg->getSender()] = intuniform(-1,1);
         receivedMaintain++; //per ora non viene utilizzato
         WATCH(receivedMaintain);
         if (receivedMaintain == numSubmodules) {
             EV << "Ho ricevuto tutte le proposte \n";
             decided = canDecide(numSubmodules - 2 * infected, result);
-            if (decided == -1)
-                throw std::runtime_error("Maintain is not working");
             receivedMaintain = 0;
             if (maintainRounds < (network->par("maxMaintainRounds").intValue()))
                 maintain(decided,numSubmodules,infected);
             else
                 EV << "finished with value " << decided;
+                delete[] RV;
+                delete[] SV;
+                delete[] PV;
+                delete[] result;
 
         }
     }

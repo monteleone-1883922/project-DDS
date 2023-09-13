@@ -33,14 +33,23 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS = $O/process.o $O/collect_m.o $O/decide_m.o $O/maintain_m.o $O/proposal_m.o
+OBJS = \
+    $O/process.o \
+    $O/collect_m.o \
+    $O/decide_m.o \
+    $O/int_m.o \
+    $O/maintain_m.o \
+    $O/proposal_m.o \
+    $O/vector_m.o
 
 # Message files
 MSGFILES = \
     collect.msg \
     decide.msg \
+    int.msg \
     maintain.msg \
-    proposal.msg
+    proposal.msg \
+    vector.msg
 
 # SM files
 SMFILES =
