@@ -6,6 +6,8 @@
 #include "decide_m.h"
 #include "maintain_m.h"
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 
 using namespace omnetpp;
@@ -27,12 +29,14 @@ private:
     int maintainRounds = 0;
     int *RV;
     int s = 0;
+    std::string logFile;
     int numInfected;
     std::vector<int> infectableProcesses;
     int indexCorrectProcess;
     int *result;
     std::mt19937 infectionRng;
     cModule *network;
+    bool log = 1;
 
 protected:
     virtual void initialize();
@@ -44,10 +48,12 @@ protected:
     virtual void decide(int v, int *SV,int numSubmodules, bool infected);
     virtual void maintain(int decision, int numProcesses, bool infected);
     virtual void createNewArrayInfectable(int numProcesses, std::vector<int> *processes, int correctProcess);
-    virtual bool generateInfections(std::vector<int> *processes, int numInfected, int process, std::mt19937* rng);
+    virtual bool generateInfections(std::vector<int> *processes, int numInfected, int process,
+            std::mt19937* rng,std::ofstream file,bool log);
     virtual int* createAndInitArray(int size);
     virtual void initArray(int* array, int size);
     virtual int** createAndInit2dArray(int size);
+    virtual void process::logVector(std::ofstream out, int *vector, int numSubmodules);
 
 };
 
@@ -55,12 +61,15 @@ Define_Module(process);
 
 
 
-bool process::generateInfections(std::vector<int> *processes, int numInfected, int process, std::mt19937* rng){
-
+bool process::generateInfections(std::vector<int> *processes, int numInfected,
+        int process, std::mt19937 *rng, std::ofstream file, bool log) {
 
     std::shuffle(processes->begin(), processes->end(), *rng);
-    for( int i = 0; i<numInfected; i++){
-        if( (*processes)[i] == process){
+    if (log){
+        file << "list of infected = " << *processes << std::endl;
+    }
+    for (int i = 0; i < numInfected; i++) {
+        if ((*processes)[i] == process) {
             return 1;
         }
     }
@@ -111,7 +120,17 @@ void process::printVector(int id, int *vector, std::string nomeVettore,
     for (int i = 0; i < numSubmodules; i++) {
         vec += std::to_string(vector[i]) + " | ";
     }
-    EV << id << " vettore " + nomeVettore + " = " << vec << endl;
+    EV << id << " vettore " + nomeVettore + " = " << vec << std::endl;
+}
+
+
+void process::logVector(std::ofstream out, int *vector, int numSubmodules) {
+    // stampa i valori di un vettore
+    std::string vec = "";
+    for (int i = 0; i < numSubmodules; i++) {
+        vec += std::to_string(vector[i]) + " | ";
+    }
+    out << vec << std::endl;
 }
 //la funzione controlla se almeno un numero è stato mandato da un numero suff. di processi corretti
 int process::canDecide(int minNumber, int *list) {
@@ -227,8 +246,8 @@ void process::initialize() {
     numSubmodules = network->getSubmoduleVectorSize("process");
 
     std::uniform_int_distribution<int> distribution(0, numSubmodules-1);
-
-
+    logFile = "results/process_" + std::to_string(getIndex()) + ".log";
+    std::ofstream file(logFile, std::ios::app);
 
     //inizializza le liste
     PV = createAndInitArray(numSubmodules);
@@ -241,11 +260,18 @@ void process::initialize() {
     createNewArrayInfectable(numSubmodules,&infectableProcesses,indexCorrectProcess);
     numInfected = network->par("numInfected");
     // Genera un numero casuale tra 0 e 1
-    myNum = intuniform(-1,1);
+    myNum = intuniform(0,1);
+    if (log){
+        file << "ROUND " << s << " -------------------------------------" << std::endl;
+        file << "I choose " << myNum << std::endl;
+    }
 
+    file << "PROPOSE PHASE -------------------------------------------------" << std::endl;
     //INIZIALIZZO GLI INFETTI
-    infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng);
+    infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log);
+
     propose(myNum,numSubmodules,infected);
+    file.close();
 
 }
 void process::handleMessage(cMessage *msg) {
@@ -257,7 +283,7 @@ void process::handleMessage(cMessage *msg) {
 
     //fa un cast safe al tipo indicato
     // SCOMMENTARE
-
+    std::ofstream file(logFile, std::ios::app);
     if (dynamic_cast<ProposalMsg*>(msg)) {
 
         ProposalMsg *my_msg = check_and_cast<ProposalMsg*>(msg);
@@ -269,11 +295,22 @@ void process::handleMessage(cMessage *msg) {
         WATCH(receivedPV);
         printVector(getIndex(), PV, "PV", numSubmodules);
         if (receivedPV == numSubmodules) {
+            if (log){
+                file << "received proposals = ";
+                logVector(file,PV,numSubmodules);
+            }
             EV << "Ho ricevuto tutte le proposte \n";
             decided = -1;
             myNum = canDecide(numSubmodules - 2 * numInfected, PV);
+            if (log){
+                file << "my value now is " << myNum << std::endl;
+            }
             receivedPV = 0;
-            infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng);
+            if (log){
+                file << "COLLECT PHASE -------------------------------------------------" << std::endl;
+            }
+            infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log);
+            initArray(SV,numSubmodules);
             collect(myNum,numSubmodules,infected);
         }
     }
@@ -283,7 +320,7 @@ void process::handleMessage(cMessage *msg) {
      WATCH(PV[i]);
      }*/
     //SCOMMENTARE
-    if (dynamic_cast<CollectMsg*>(msg)) {
+    else if (dynamic_cast<CollectMsg*>(msg)) {
         CollectMsg *cMsg = check_and_cast<CollectMsg*>(msg);
         if (!infected)
             SV[cMsg->getSender()] = cMsg->getValue();
@@ -292,15 +329,25 @@ void process::handleMessage(cMessage *msg) {
         receivedSV++;
         printVector(getIndex(), SV, "SV", numSubmodules);
         if (receivedSV == numSubmodules) {
+            if (log) {
+                file << "received values from all processes = ";
+                logVector(file, SV, numSubmodules);
+            }
             decided = -1;
             receivedSV = 0;
-            infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng);
+            if (log){
+                file << "DECIDE PHASE -------------------------------------------------" << std::endl;
+            }
+            infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log);
+            for (int i = 0; i < numSubmodules; i++){
+                initArray(Ev[i],numSubmodules);
+            }
             decide(myNum, SV,numSubmodules,infected);
         }
 
     }
 
-    if (dynamic_cast<Decide*>(msg)) {
+    else if (dynamic_cast<Decide*>(msg)) {
 
         Decide *myMsg = check_and_cast<Decide*>(msg);
         receivedEv++; //aggiorno il contatore di messaggi ricevuti
@@ -316,6 +363,13 @@ void process::handleMessage(cMessage *msg) {
             Ev[sender][i] = element;
         }
         if (receivedEv == numSubmodules) { //se ho ricevuto gli array da tutti
+            if (log) {
+                file << "received arrays from all processes:" << std::endl;
+                for (int i = 0; i < numSubmodules; i++) {
+                    logVector(file, Ev[i], numSubmodules);
+                }
+            }
+
             EV << "ho ricevuto tutto" << endl;
             printVector(getIndex(), Ev[0], "Ev[0]", numSubmodules);
             printVector(getIndex(), Ev[1], "Ev[1]", numSubmodules);
@@ -340,6 +394,11 @@ void process::handleMessage(cMessage *msg) {
                     RV[j] = 1;
 
             }
+            if (log){
+                file << "the king is " << s << std::endl;
+                file << "the resulting array from the table = ";
+                logVector(file, RV, numSubmodules);
+            }
             int w = canDecide(3 * numInfected + 1, RV);
             if (w != -1) {
                 myNum = w;
@@ -352,21 +411,35 @@ void process::handleMessage(cMessage *msg) {
                     myNum = 0;
                 }
             }
+            if (log){
+                file << "My value after decide is " << myNum << std::endl;
+            }
             decided = -1;
             receivedEv = 0;
             EV << "FINITI 3 ROUND - S= : " << s << endl;
             s++;
-            infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng);
+            if (log) {
+                file << "ROUND " << s << " -------------------------------------" << std::endl;
+            }
+
+            infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log);
             if (s == numSubmodules) {
                 decided = myNum;
+                if (log) {
+                    file << "MAINTAIN PHASE -------------------------------------------------" << std::endl;
+                }
+                infectableProcesses.push_back(indexCorrectProcess);
                 maintain(decided,numSubmodules,infected );
             } else {
+                if (log){
+                    file << "PROPOSE PHASE -------------------------------------------------" << std::endl;
+                }
                 propose(myNum,numSubmodules,infected);
             }
         }
     }
 
-    if (dynamic_cast<Maintain*>(msg)) {
+    else if (dynamic_cast<Maintain*>(msg)) {
         Maintain *my_msg = check_and_cast<Maintain*>(msg);
 
         if (!infected)
@@ -376,19 +449,36 @@ void process::handleMessage(cMessage *msg) {
         receivedMaintain++; //per ora non viene utilizzato
         WATCH(receivedMaintain);
         if (receivedMaintain == numSubmodules) {
+
             EV << "Ho ricevuto tutte le proposte \n";
             decided = canDecide(numSubmodules - 2 * infected, result);
+            if (log) {
+                file << "received values from all processes = ";
+                logVector(file, result, numSubmodules);
+                file << "decided value = " << decided << std::endl;
+            }
             receivedMaintain = 0;
-            if (maintainRounds < (network->par("maxMaintainRounds").intValue()))
+            if (maintainRounds < (network->par("maxMaintainRounds").intValue())){
+
+                if (log) {
+                    file << "MAINTAIN PHASE -------------------------------------------------" << std::endl;
+                }
+                infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log);
                 maintain(decided,numSubmodules,infected);
-            else
+                maintainRounds++;
+            }
+            else{
+                if (log){
+                    file << "finished with value = " << decided;
+                }
                 EV << "finished with value " << decided;
                 delete[] RV;
                 delete[] SV;
                 delete[] PV;
                 delete[] result;
-
+            }
         }
     }
+    file.close();
 }
 
