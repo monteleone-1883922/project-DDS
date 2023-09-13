@@ -1,7 +1,10 @@
 network Topology
 {
     parameters:
-        int numinfected = default(0);
+        int numInfected = 1;
+        int seed = 42;
+        int maxMaintainRounds = 5;
+        bool logs = false;
     types:
         channel Link extends ned.DelayChannel{
             delay = 1000ms;

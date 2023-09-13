@@ -1,5 +1,5 @@
 message SendValue
 	{
-	    int intMsg;
+	    int value;
 	    int sender;
 	}

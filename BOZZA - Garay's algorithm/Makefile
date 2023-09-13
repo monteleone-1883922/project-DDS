@@ -1,5 +1,5 @@
 #
-# OMNeT++/OMNEST Makefile for Gayay_algorithm
+# OMNeT++/OMNEST Makefile for garay_algorithm
 #
 # This file was generated with the command:
 #  opp_makemake -f --deep -O out -I.
@@ -7,7 +7,7 @@
 
 # Name of target to be created (-o option)
 TARGET_DIR = .
-TARGET_NAME = Gayay_algorithm$(D)
+TARGET_NAME = garay_algorithm$(D)
 TARGET = $(TARGET_NAME)$(EXE_SUFFIX)
 TARGET_IMPLIB = $(TARGET_NAME)$(IMPLIB_SUFFIX)
 TARGET_IMPDEF = $(TARGET_NAME)$(IMPDEF_SUFFIX)

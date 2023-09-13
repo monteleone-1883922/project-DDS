@@ -1,5 +1,5 @@
 message KingSend
 	{
-	    int intMsg;
+	    int value;
 	    int sender;
 	}
