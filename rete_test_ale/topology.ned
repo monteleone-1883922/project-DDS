@@ -2,6 +2,8 @@ network Topology
 {
     parameters:
         	int numInfected = 1;
+        	int seed = 42;
+        	int maxMaintainRounds = 3;
     
     types:
         channel Link extends ned.DelayChannel{
