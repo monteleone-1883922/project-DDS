@@ -36,7 +36,7 @@ private:
     int *result;
     std::mt19937 infectionRng;
     cModule *network;
-    bool log = 1;
+    bool log;
 
 protected:
     virtual void initialize();
@@ -49,11 +49,11 @@ protected:
     virtual void maintain(int decision, int numProcesses, bool infected);
     virtual void createNewArrayInfectable(int numProcesses, std::vector<int> *processes, int correctProcess);
     virtual bool generateInfections(std::vector<int> *processes, int numInfected, int process,
-            std::mt19937* rng,std::ofstream file,bool log);
+            std::mt19937* rng,std::ofstream& file,bool log);
     virtual int* createAndInitArray(int size);
     virtual void initArray(int* array, int size);
     virtual int** createAndInit2dArray(int size);
-    virtual void process::logVector(std::ofstream out, int *vector, int numSubmodules);
+    virtual void logVector(std::ofstream& out, int *vector, int numSubmodules);
 
 };
 
@@ -62,11 +62,15 @@ Define_Module(process);
 
 
 bool process::generateInfections(std::vector<int> *processes, int numInfected,
-        int process, std::mt19937 *rng, std::ofstream file, bool log) {
+        int process, std::mt19937 *rng, std::ofstream& file, bool log) {
 
     std::shuffle(processes->begin(), processes->end(), *rng);
-    if (log){
-        file << "list of infected = " << *processes << std::endl;
+    if (log) {
+        std::string vec = "";
+        for (int i = 0; i < numSubmodules-1; i++) {
+            vec += std::to_string((*processes)[i]) + " | ";
+        }
+        file << "list of infected = " << vec << std::endl;
     }
     for (int i = 0; i < numInfected; i++) {
         if ((*processes)[i] == process) {
@@ -110,6 +114,7 @@ void process::createNewArrayInfectable(int numProcesses, std::vector<int> *proce
         else
             processes->push_back(i+1);
     }
+    processes->pop_back();
 }
 
 
@@ -124,7 +129,7 @@ void process::printVector(int id, int *vector, std::string nomeVettore,
 }
 
 
-void process::logVector(std::ofstream out, int *vector, int numSubmodules) {
+void process::logVector(std::ofstream& out, int *vector, int numSubmodules) {
     // stampa i valori di un vettore
     std::string vec = "";
     for (int i = 0; i < numSubmodules; i++) {
@@ -255,18 +260,21 @@ void process::initialize() {
     RV = createAndInitArray(numSubmodules);
     Ev = createAndInit2dArray(numSubmodules);
     result = new int[numSubmodules]();
+    log = network->par("logs");
     infectionRng.seed(network->par("seed"));
     indexCorrectProcess = distribution(infectionRng);
     createNewArrayInfectable(numSubmodules,&infectableProcesses,indexCorrectProcess);
     numInfected = network->par("numInfected");
     // Genera un numero casuale tra 0 e 1
     myNum = intuniform(0,1);
+    EV << getIndex() << " chooses value " << myNum;
     if (log){
         file << "ROUND " << s << " -------------------------------------" << std::endl;
         file << "I choose " << myNum << std::endl;
+        file << "PROPOSE PHASE -------------------------------------------------" << std::endl;
     }
 
-    file << "PROPOSE PHASE -------------------------------------------------" << std::endl;
+
     //INIZIALIZZO GLI INFETTI
     infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log);
 
@@ -451,7 +459,7 @@ void process::handleMessage(cMessage *msg) {
         if (receivedMaintain == numSubmodules) {
 
             EV << "Ho ricevuto tutte le proposte \n";
-            decided = canDecide(numSubmodules - 2 * infected, result);
+            decided = canDecide(numSubmodules - 2 * numInfected, result);
             if (log) {
                 file << "received values from all processes = ";
                 logVector(file, result, numSubmodules);

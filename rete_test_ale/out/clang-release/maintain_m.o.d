@@ -1,6 +1,6 @@
-out/clang-debug//proposal_m.o: proposal_m.cc proposal_m.h \
+out/clang-release//maintain_m.o: maintain_m.cc maintain_m.h \
   /home/alex/Programs/omnetpp-6.0.1/include/omnetpp.h
 
-proposal_m.h:
+maintain_m.h:
 
 /home/alex/Programs/omnetpp-6.0.1/include/omnetpp.h:
