@@ -27,7 +27,7 @@ private:
     int indexCorrectProcess = 2;
     int *setProcess;
     int *ValuesFromKing;
-    bool cured= true;
+    bool cured= false;
 
 protected:
     virtual void initialize();
@@ -37,7 +37,7 @@ protected:
     virtual void sendValue(int v);
     virtual void reconstruction(int *array);
     virtual void kingSend(int v);
-    virtual bool updateInfectedStatus();
+    virtual bool updateInfectedStatus(int * array);
     virtual void sendNewInfected(int *inf);
     virtual void updateInfected(int *arrayUpdated, int num);
     virtual int* createNewArrayInfectable(int arraySize, int *init, int pos);
@@ -61,10 +61,10 @@ int* process::createNewArrayInfectable(int arraySize, int *init, int pos) {
     return newArray;
 }
 //OUTPUT: Restituisce se il processo è stato infettato
-bool process::updateInfectedStatus() {
+bool process::updateInfectedStatus(int * array) {
     int indice = getIndex();
     for (int i = 0; i < numInfected; i++) {
-        if (indice == processInfected[i])
+        if (indice == array[i])
             return true;
     }
     return false;
@@ -82,7 +82,7 @@ void process::updateInfected(int *arrayUpdated, int num) {
         updateInfected(createNewArrayInfectable(num, arrayUpdated, indexInf),
                 num - 1);
     } else {
-        infected = updateInfectedStatus();
+        infected = updateInfectedStatus(processInfected);
         sendNewInfected(processInfected);
         //printVector(getIndex(), processInfected, "updateInfected::::Nuova Lista processi infetti", numInfected);
     }
@@ -250,7 +250,7 @@ void process::handleMessage(cMessage *msg) {
         Infected *my_msg = check_and_cast<Infected*>(msg);
         for (int i = 0; i < numInfected; i++)
             processInfected[i] = my_msg->getProcess(i);
-        infected = updateInfectedStatus();
+        infected = updateInfectedStatus(processInfected);
         printVector(getIndex(), processInfected,
                 "Lista processi infetti ricevuta", numInfected);
         EV << getIndex() << " sceglie num " << value << "\n";
@@ -276,15 +276,6 @@ void process::handleMessage(cMessage *msg) {
             reconstruction(MV);
         }
     }
-
-    if (dynamic_cast<KingSend*>(msg)) {
-        KingSend *cMsg = check_and_cast<KingSend*>(msg);
-        int vKing = cMsg->getIntMsg();
-        if ((vKing == 0 || vKing == 1) && c < numSubmodules - 2 * numInfected)
-            value = vKing;
-       round++;
-    }
-
     if (dynamic_cast<SendList*>(msg)) {
 
         SendList *myMsg = check_and_cast<SendList*>(msg);
@@ -337,6 +328,21 @@ void process::handleMessage(cMessage *msg) {
             if (k == getIndex())
                 kingSend(value);
         }
+    }
+        if (dynamic_cast<KingSend*>(msg)) {
+        KingSend *cMsg = check_and_cast<KingSend*>(msg);
+        int vKing = cMsg->getIntMsg();
+        if ((vKing == 0 || vKing == 1) && c < numSubmodules - 2 * numInfected)
+            value = vKing;
+       round++;
+       int * oldInfected = processInfected; //DEVE ESSERE UNA COPIA
+       updateInfected();
+       if(updateInfectedStatus(oldInfected) && !updateInfectedStatus(processInfected))
+       cured=true;
+    else{
+        cured=false;
+    }
+
     }
 
 }
