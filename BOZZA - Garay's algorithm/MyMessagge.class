@@ -1,7 +1,0 @@
-class MyMessage : public cMessage {
-protected:
-    std::string arrayData;
-public:
-    void setArrayData(const std::string& data) { arrayData = data; }
-    const std::string& getArrayData() const { return arrayData; }
-};
