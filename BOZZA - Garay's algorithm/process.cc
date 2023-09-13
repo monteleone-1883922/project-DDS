@@ -6,6 +6,8 @@
 #include "sendList_m.h"
 #include "infected_m.h"
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 using namespace omnetpp;
 
@@ -22,12 +24,10 @@ private:
     int round = 0;
     int c;
     int k;
+    std::string logFile;
+    bool log = 1;
     int numInfected;
-    int *processInfected;
-    int *infectableProcess;
     int indexCorrectProcess;
-    int *setProcess;
-    int *ValuesFromKing;
     std::vector<int> infectableProcesses;
     bool cured = false;
     std::mt19937 infectionRng;
@@ -45,19 +45,30 @@ protected:
     virtual bool updateInfectedStatus(int * array);
     virtual void createNewArrayInfectable(int numProcesses, std::vector<int> *processes, int correctProcess);
     virtual int countOne(int *array);
-    virtual bool generateInfections(std::vector<int> *processes, int numInfected, int process, std::mt19937* rng);
+    virtual bool generateInfections(std::vector<int> *processes, int numInfected, int process,
+            std::mt19937* rng, std::ofstream& file, bool log);
     virtual int* createAndInitArray(int size);
     virtual void initArray(int *array, int size);
     virtual int** createAndInit2dArray(int size);
+    virtual void logVector(std::ofstream& out, int *vector, int numSubmodules);
 };
 
 Define_Module(process);
 
 
-bool process::generateInfections(std::vector<int> *processes, int numInfected, int process, std::mt19937* rng){
+bool process::generateInfections(std::vector<int> *processes, int numInfected, int process,
+        std::mt19937* rng, std::ofstream& file, bool log){
     std::shuffle(processes->begin(), processes->end(), *rng);
-    for( int i = 0; i<numInfected; i++){
-        if( (*processes)[i] == process){
+    if (log) {
+        std::string vec = "";
+        for (int i = 0; i < numSubmodules - 1; i++) {
+            vec += std::to_string((*processes)[i]) + " | ";
+        }
+        file << "list of infected = " << vec << std::endl;
+    }
+
+    for (int i = 0; i < numInfected; i++) {
+        if ((*processes)[i] == process) {
             return 1;
         }
     }
@@ -102,6 +113,15 @@ bool process::updateInfectedStatus(int * array) {
             return true;
     }
     return false;
+}
+
+void process::logVector(std::ofstream& out, int *vector, int numSubmodules) {
+    // stampa i valori di un vettore
+    std::string vec = "";
+    for (int i = 0; i < numSubmodules; i++) {
+        vec += std::to_string(vector[i]) + " | ";
+    }
+    out << vec << std::endl;
 }
 
 void process::printVector(int id, int *vector, std::string nomeVettore,
@@ -194,7 +214,8 @@ void process::initialize() {
     numSubmodules = network->getSubmoduleVectorSize("process");
     
     //inizializza le liste
-    
+    logFile = "results/process_" + std::to_string(getIndex()) + ".log";
+    std::ofstream file(logFile, std::ios::app);
     std::uniform_int_distribution<int> distribution(0, numSubmodules-1);
     // Inizializza il generatore di numeri casuali con un seed
     MV = createAndInitArray(numSubmodules);
@@ -207,32 +228,48 @@ void process::initialize() {
     // Genera un numero casuale tra 0 e 1
     value = intuniform(0, 1);
 
-    infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng);
+    if (log){
+            file << "ROUND " << round << " -------------------------------------" << std::endl;
+            file << "I choose " << value << std::endl;
+
+        }
+
+    infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log);
+
+    if (log){
+        file << "SEND VALUE PHASE -------------------------------------------------" << std::endl;
+    }
     sendValue(value,numSubmodules,infected);
+    file.close();
 }
 
 void process::handleMessage(cMessage *msg) {
 
     //fa un cast safe al tipo indicato
-
+    std::ofstream file(logFile, std::ios::app);
     if (dynamic_cast<SendValue*>(msg)) {
 
         SendValue *my_msg = check_and_cast<SendValue*>(msg);
 
-        if (!infected){
+        if (!infected) {
             MV[my_msg->getSender()] = my_msg->getValue();
-        }
-        else {
-            MV[my_msg->getSender()] = intuniform(-1,1);
+        } else {
+            MV[my_msg->getSender()] = intuniform(-1, 1);
         }
 
         recivedMV++; //per ora non viene utilizzato
         printVector(getIndex(), MV, "MV", numSubmodules);
         if (recivedMV == numSubmodules) {
+
             EV << "Ho ricevuto tutte le proposte \n";
             c = countOne(MV);
             value = c >= numSubmodules / 2;
-
+            if (log) {
+                file << "received values = ";
+                logVector(file, MV, numSubmodules);
+                file << "My value now is " << value << std::endl;
+                file << "SEND MV PHASE -------------------------------------------------" << std::endl;
+            }
             recivedMV = 0;
             sendMV(MV, numSubmodules, infected);
         }
@@ -245,11 +282,10 @@ void process::handleMessage(cMessage *msg) {
         //salvo l'array ricevuto nella riga del sender
         for (int i = 0; i < numSubmodules; i++) {
             int element;
-            if (!infected){
+            if (!infected) {
                 element = myMsg->getData(i);
-            }
-            else {
-                element = intuniform(-1,1);
+            } else {
+                element = intuniform(-1, 1);
             }
             echo[sender][i] = element;
         }
@@ -259,6 +295,13 @@ void process::handleMessage(cMessage *msg) {
             printVector(getIndex(), echo[1], "Ev[1]", numSubmodules);
             printVector(getIndex(), echo[2], "Ev[2]", numSubmodules);
             printVector(getIndex(), echo[3], "Ev[3]", numSubmodules);
+
+            if (log) {
+                file << "received arrays from all processes:" << std::endl;
+                for (int i = 0; i < numSubmodules; i++) {
+                    logVector(file, echo[i], numSubmodules);
+                }
+            }
             //setto tutti i campi di RV a null
 
             if (cured) { ///DA IMPLEMENTARE
@@ -286,38 +329,65 @@ void process::handleMessage(cMessage *msg) {
                 }
                 c = countOne(fix);
                 value = c >= numSubmodules / 2;
+                if (log) {
+                    file << "I'm being cured" << std::endl;
+                    file << "the resulting array from the table = ";
+                    logVector(file, fix, numSubmodules);
+                    file << "My value is now = " << value << std::endl;
+                }
 
             }
 
             k = (round % numSubmodules) + 1; // (* k is the phase's king *)
+            if (log) {
+                file << "king of round is " << k << std::endl;
+                file << "KING SEND PHASE -------------------------------------------------" << std::endl;
+            }
+
             if (k == getIndex())
                 kingSend(value, numSubmodules, infected);
         }
+    }
 
-        if (dynamic_cast<KingSend*>(msg)) {
-            KingSend *cMsg = check_and_cast<KingSend*>(msg);
-            int vKing;
-            if (!infected){
-                vKing = cMsg->getValue();
+    if (dynamic_cast<KingSend*>(msg)) {
+        KingSend *cMsg = check_and_cast<KingSend*>(msg);
+        int vKing;
+        if (!infected) {
+            vKing = cMsg->getValue();
+        } else {
+            vKing = intuniform(-1, 1);
+        }
+        if ((vKing == 0 || vKing == 1) && c < numSubmodules - 2 * numInfected)
+            value = vKing;
+        if (log){
+            file << "king sent = " << vKing << std::endl;
+            file << "My value now is " << value << std::endl;
+        }
+        round++;
+        bool oldStatus = infected; //DEVE ESSERE UNA COPIA
+
+
+        if (round < (network->par("maxMaintainRounds").intValue())) {
+            if (log){
+                file << "ROUND " << round << " -------------------------------------" << std::endl;
             }
-            else {
-                vKing = intuniform(-1,1);
-            }
-            if ((vKing == 0 || vKing == 1)
-                    && c < numSubmodules - 2 * numInfected)
-                value = vKing;
-            round++;
-            bool oldStatus = infected; //DEVE ESSERE UNA COPIA
             infected = generateInfections(&infectableProcesses, numInfected,
-                    getIndex(), &infectionRng);
-            cured = oldStatus && !infected;
-
-            if (round < (network->par("maxMaintainRounds").intValue())){
-                sendValue(value,numSubmodules,infected);
+                    getIndex(), &infectionRng, file, log);
+            if (log){
+                file << "SEND VALUE PHASE -------------------------------------------------" << std::endl;
             }
+            cured = oldStatus && !infected;
+            sendValue(value, numSubmodules, infected);
+        } else{
+            if (log){
+                file << "finished with value = " << value << std::endl;
+            }
+            EV  << "finished with value = " << value;
 
         }
 
     }
+    file.close();
+
 }
 
