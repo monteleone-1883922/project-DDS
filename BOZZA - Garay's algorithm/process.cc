@@ -28,23 +28,46 @@ private:
     int *setProcess;
     int *ValuesFromKing;
     bool cured= false;
+    std::mt19937 infectionRng;
 
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
     virtual void printVector(int id, int *vector, std::string nomeVettore,
             int numSubmodules);
-    virtual void sendValue(int v);
-    virtual void reconstruction(int *array);
-    virtual void kingSend(int v);
+    virtual void sendValue(int v, int numProcesses, bool infected);
+    virtual void reconstruction(int *array,int numProcesses, bool infected);
+    virtual void kingSend(int v,int numProcesses, bool infected);
     virtual bool updateInfectedStatus(int * array);
-    virtual void sendNewInfected(int *inf);
-    virtual void updateInfected(int *arrayUpdated, int num);
     virtual int* createNewArrayInfectable(int arraySize, int *init, int pos);
     virtual int countOne(int *array);
+    virtual bool generateInfections(std::vector<int> *processes, int numInfected, int process, std::mt19937* rng);
+    virtual int* createAndInitArray(int size);
+    virtual void initArray(int *array);
 };
 
 Define_Module(process);
+
+
+bool process::generateInfections(std::vector<int> *processes, int numInfected, int process, std::mt19937* rng){
+    std::shuffle(processes->begin(), processes->end(), *rng);
+    for( int i = 0; i<numInfected; i++){
+        if( (*processes)[i] == process){
+            return 1;
+        }
+    }
+    return 0;
+}
+int* process::createAndInitArray(int size){
+    int* array = new int[size]();
+    initArray(array);
+    return array;
+}
+void process::initArray(int* array){
+    for (int i = 0; i < sizeof(array); i++) {
+        array[i] = -1;
+    }
+}
 //INPUT: Array di partenza e un elemento in posizion "POS" da eliminare
 //OUTPUT Un array di dimesione n-1 senza quel elemento
 int* process::createNewArrayInfectable(int arraySize, int *init, int pos) {
@@ -68,39 +91,6 @@ bool process::updateInfectedStatus(int * array) {
             return true;
     }
     return false;
-}
-//OUTPUT: crea un array con gli array infetti
-void process::updateInfected(int *arrayUpdated, int num) {
-    std::random_device rd;
-    std::mt19937 generator(rd());
-    //EV <<"updateInfected:::::numero di processi infettabili" <<num <<endl;
-    if (num >= numSubmodules - numInfected) {
-        std::uniform_int_distribution<int> distributionInf(0, num - 1);
-        int indexInf = distributionInf(generator);
-        //  EV <<"updateInfected::::indice che verrà infettato: " <<indexInf <<endl;
-        processInfected[numSubmodules - num - 1] = arrayUpdated[indexInf];
-        updateInfected(createNewArrayInfectable(num, arrayUpdated, indexInf),
-                num - 1);
-    } else {
-        infected = updateInfectedStatus(processInfected);
-        sendNewInfected(processInfected);
-        //printVector(getIndex(), processInfected, "updateInfected::::Nuova Lista processi infetti", numInfected);
-    }
-}
-//Manda a tutti i processi la lista dei processi infetti
-void process::sendNewInfected(int *inf) {
-    Infected *mesg = new Infected("Infected List");
-    mesg->setProcessArraySize(numInfected);
-    for (int i = 0; i < numInfected; i++) {
-        mesg->setProcess(i, inf[i]);  // Popola l'array con i dati desiderati
-    }
-    for (int j = 0; j < numSubmodules; j++) {
-        if (j == numSubmodules - 1)
-            scheduleAt(simTime(), mesg);
-        else
-            send(mesg->dup(), "gate$o", j);
-    }
-
 }
 
 void process::printVector(int id, int *vector, std::string nomeVettore,
@@ -198,43 +188,23 @@ void process::initialize() {
     // si salva il numero di moduli presenti e inizializza il vettore in modo che abbia una cella per ogni modulo
     cModule *topLevelModule = getModuleByPath("Topology");
     numSubmodules = topLevelModule->getSubmoduleVectorSize("process");
+    
     //inizializza le liste
-    MV = new int[numSubmodules]();
-    for (int i = 0; i < numSubmodules; i++) {
-        MV[i] = -1;
-    }
+    
+    std::uniform_int_distribution<int> distribution(0, numSubmodules-1);
     // Inizializza il generatore di numeri casuali con un seed
-    std::random_device rd;
-    std::mt19937 generator(rd());
+    MV = createAndInitArray(numSubmodules);
+    echo = createAndInit2dArray(numSubmodules);
 
-    // Definisci la distribuzione per generare numeri tra 0 e 1 inclusi
-    std::uniform_int_distribution<int> distribution(0, 1);
-
+    infectionRng.seed(network->par("seed"));
+    indexCorrectProcess = distribution(infectionRng);
+    createNewArrayInfectable(numSubmodules,&infectableProcesses,indexCorrectProcess);
+    numInfected = network->par("numInfected");
     // Genera un numero casuale tra 0 e 1
-    value = distribution(generator);
+    myNum = uniform(0, 1);
 
-    //INIZIALIZZO GLI INFETTI
-    processInfected = new int[numInfected];
-
-    if (getIndex() == 0) {
-        setProcess = new int[numSubmodules]();
-        for (int i = 0; i < numSubmodules; i++) {
-            setProcess[i] = i;
-        }
-        // printVector(0, setProcess, "INIT:::Set dei processi:", numSubmodules);
-        infectableProcess = createNewArrayInfectable(numSubmodules, setProcess,
-                indexCorrectProcess);
-
-        //printVector(0, infectableProcess, "INIT:::Set dei processi infettabili:", numSubmodules-1);
-        updateInfected(infectableProcess, numSubmodules - 1);
-        printVector(getIndex(), setProcess, "INIT:::Set dei processi: ",
-                numSubmodules);
-        printVector(getIndex(), infectableProcess,
-                "INIT:::Set dei processi infettabili:", numSubmodules - 1);
-        printVector(getIndex(), processInfected,
-                "INIT:::Set dei processi infettati:", numInfected);
-    }
-
+    infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng);
+    sendValue(myNum,numSubmodules,infected);
 }
 
 void process::handleMessage(cMessage *msg) {
@@ -245,17 +215,7 @@ void process::handleMessage(cMessage *msg) {
     std::string mes = msg->getName();
 
     //fa un cast safe al tipo indicato
-    // SCOMMENTARE
-    if (dynamic_cast<Infected*>(msg)) {
-        Infected *my_msg = check_and_cast<Infected*>(msg);
-        for (int i = 0; i < numInfected; i++)
-            processInfected[i] = my_msg->getProcess(i);
-        infected = updateInfectedStatus(processInfected);
-        printVector(getIndex(), processInfected,
-                "Lista processi infetti ricevuta", numInfected);
-        EV << getIndex() << " sceglie num " << value << "\n";
-        sendValue(value);
-    }
+
     if (dynamic_cast<SendValue*>(msg)) {
 
         SendValue *my_msg = check_and_cast<SendValue*>(msg);
@@ -273,7 +233,7 @@ void process::handleMessage(cMessage *msg) {
                 value = 0;
             }
             recivedMV = 0;
-            reconstruction(MV);
+            reconstruction(MVnumSubmodules,infected);
         }
     }
     if (dynamic_cast<SendList*>(msg)) {
@@ -326,7 +286,7 @@ void process::handleMessage(cMessage *msg) {
 
             k = (round % numSubmodules) + 1; // (* k is the phase's king *)
             if (k == getIndex())
-                kingSend(value);
+                kingSend(value,numSubmodules,infected);
         }
     }
         if (dynamic_cast<KingSend*>(msg)) {
@@ -335,9 +295,9 @@ void process::handleMessage(cMessage *msg) {
         if ((vKing == 0 || vKing == 1) && c < numSubmodules - 2 * numInfected)
             value = vKing;
        round++;
-       int * oldInfected = processInfected; //DEVE ESSERE UNA COPIA
-       updateInfected();
-       if(updateInfectedStatus(oldInfected) && !updateInfectedStatus(processInfected))
+       int * oldStatus = infected; //DEVE ESSERE UNA COPIA
+       infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng);
+       if(oldStatus && !infected)
        cured=true;
     else{
         cured=false;
