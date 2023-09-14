@@ -13,16 +13,16 @@ using namespace omnetpp;
 class process: public cSimpleModule {
 
 private:
-    int *MV; //qui vengono salvati tutti i valori ricevuti dagli altri moduli
-    int recivedMV = 0;
-    int numSubmodules; //rappresenta il numero di moduli nella rete
-    int value; //rappresenta il numero randomico scelto dal modulo
-    bool infected = 0; //indica se il modulo è o no infetto
-    int **echo;
-    int recivedEcho = 0;
-    int round = 0;
+    int *MV; //store the received values in a vector
+    int recivedMV = 0; //number of values received
+    int numSubmodules; //number of processes in the network
+    int value; //the value that a process propose
+    bool infected = 0; //bool that represent if a process is infected
+    int **echo; //vector containing the MV received
+    int recivedEcho = 0; //number of echo received
+    int round = 0; //number of round
     int c;
-    int k;
+    int k; //index of the king
     std::string logFile;
     bool log = 1;
     int numInfected;
@@ -83,7 +83,6 @@ void process::initArray(int* array, int size){
         array[i] = -1;
     }
 }
-
 int** process::createAndInit2dArray(int size){
     int** array = new int*[size]();
     for (int i = 0; i < size; i++) {
@@ -91,11 +90,7 @@ int** process::createAndInit2dArray(int size){
     }
     return array;
 }
-//INPUT: Array di partenza e un elemento in posizion "POS" da eliminare
-//OUTPUT Un array di dimesione n-1 senza quel elemento
 void process::createNewArrayInfectable(int numProcesses, std::vector<int> *processes, int correctProcess) {
-    //printVector(0, init, "createNewArrayInfectable - RICEVUTO:", arraySize);
-
     for (int i = 0 ; i < numProcesses; i++){
         if (i < correctProcess)
             processes->push_back(i);
@@ -104,7 +99,7 @@ void process::createNewArrayInfectable(int numProcesses, std::vector<int> *proce
     }
     processes->pop_back();
 }
-//OUTPUT: Restituisce se il processo è stato infettato
+//OUTPUT: it returns if the process is infected
 bool process::updateInfectedStatus(int * array) {
     int indice = getIndex();
     for (int i = 0; i < numInfected; i++) {
@@ -113,16 +108,14 @@ bool process::updateInfectedStatus(int * array) {
     }
     return false;
 }
-
+//print vector values
 void process::logVector(std::ofstream& out, int *vector, int numSubmodules) {
-    // stampa i valori di un vettore
     std::string vec = "";
     for (int i = 0; i < numSubmodules; i++) {
         vec += std::to_string(vector[i]) + " | ";
     }
     out << vec << std::endl;
 }
-
 void process::printVector(int id, int *vector, std::string nomeVettore,
         int numSubmodules) {
     // stampa i valori di un vettore
@@ -139,10 +132,7 @@ void process::sendValue(int v,int numProcesses, bool infected) {
         if (!infected) {
             msg->setValue(v);
         } else {
-
-            // Definisci la distribuzione per generare numeri tra 0 e 1 inclusi
-
-            // Genera un numero casuale tra 0 e 1
+            // generate a random int number between 0 and 1
             int w = intuniform(-1, 1);
             msg->setValue(w);
             EV << "mando sul gate" << i << "il valore " << w << endl;
@@ -164,7 +154,7 @@ void process::kingSend(int v,int numProcesses, bool infected) {
             msg->setValue(v);
         } else {
 
-            // Genera un numero casuale tra 0 e 1
+            // generate a random int number between 0 and 1
             int w = intuniform(-1,1);
             msg->setValue(w);
             EV << "mando sul gate" << i << "il valore " << w << std::endl;
@@ -183,7 +173,7 @@ void process::sendMV(int *array, int numProcesses, bool infected) {
 
     for (int i = 0; i < numSubmodules; i++) {
         if (!infected)
-            msg->setData(i, array[i]); // Popola l'array con i dati desiderati
+            msg->setData(i, array[i]);
         else {
             msg->setData(i, intuniform(-1,1));
         }
@@ -208,15 +198,15 @@ int process::countOne(int *array) {
 }
 void process::initialize() {
 
-    // si salva il numero di moduli presenti e inizializza il vettore in modo che abbia una cella per ogni modulo
     network = getModuleByPath("Topology");
     numSubmodules = network->getSubmoduleVectorSize("process");
     
-    //inizializza le liste
+
     logFile = "results/process_" + std::to_string(getIndex()) + ".log";
+
     std::ofstream file(logFile, std::ios::app);
     std::uniform_int_distribution<int> distribution(0, numSubmodules-1);
-    // Inizializza il generatore di numeri casuali con un seed
+
     MV = createAndInitArray(numSubmodules);
     echo = createAndInit2dArray(numSubmodules);
     fix = createAndInitArray(numSubmodules);
@@ -244,7 +234,7 @@ void process::initialize() {
 
 void process::handleMessage(cMessage *msg) {
 
-    //fa un cast safe al tipo indicato
+
     std::ofstream file(logFile, std::ios::app);
     if (dynamic_cast<SendValue*>(msg)) {
 
@@ -256,7 +246,7 @@ void process::handleMessage(cMessage *msg) {
             MV[my_msg->getSender()] = intuniform(-1, 1);
         }
 
-        recivedMV++; //per ora non viene utilizzato
+        recivedMV++;
         printVector(getIndex(), MV, "MV", numSubmodules);
         if (recivedMV == numSubmodules) {
 
@@ -276,9 +266,9 @@ void process::handleMessage(cMessage *msg) {
     if (dynamic_cast<SendList*>(msg)) {
 
         SendList *myMsg = check_and_cast<SendList*>(msg);
-        recivedEcho++; //aggiorno il contatore di messaggi ricevuti
-        int sender = myMsg->getSender(); //mi salvo il sender
-        //salvo l'array ricevuto nella riga del sender
+        recivedEcho++;
+        int sender = myMsg->getSender();
+
         for (int i = 0; i < numSubmodules; i++) {
             int element;
             if (!infected) {
@@ -288,7 +278,7 @@ void process::handleMessage(cMessage *msg) {
             }
             echo[sender][i] = element;
         }
-        if (recivedEcho == numSubmodules) { //se ho ricevuto gli array da tutti
+        if (recivedEcho == numSubmodules) {
             EV << "ho ricevuto tutto" << endl;
             printVector(getIndex(), echo[0], "Ev[0]", numSubmodules);
             printVector(getIndex(), echo[1], "Ev[1]", numSubmodules);
@@ -301,13 +291,12 @@ void process::handleMessage(cMessage *msg) {
                     logVector(file, echo[i], numSubmodules);
                 }
             }
-            //setto tutti i campi di RV a null
+
             recivedEcho = 0;
-            if (cured) { ///DA IMPLEMENTARE
+            if (cured) {
 
                 //PROCEDURE RECONSTRUCT(r)
 
-                //controllo se tra le colonne ci sono abbastanza valori uguali
 
                 initArray(fix, numSubmodules);
                 for (int j = 0; j < numSubmodules; j++) {
@@ -363,7 +352,7 @@ void process::handleMessage(cMessage *msg) {
             file << "My value now is " << value << std::endl;
         }
         round++;
-        bool oldStatus = infected; //DEVE ESSERE UNA COPIA
+        bool oldStatus = infected;
 
 
         if (round < (network->par("maxMaintainRounds").intValue())) {
