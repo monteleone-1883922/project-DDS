@@ -1,11 +1,15 @@
 out/clang-release//process.o: process.cc process.h \
-  /home/gavriel/Scaricati/omnetpp-6.0.1/include/omnetpp.h int_m.h \
-  vector_m.h
+  /home/alex/Programs/omnetpp-6.0.1/include/omnetpp.h proposal_m.h \
+  collect_m.h decide_m.h maintain_m.h
 
 process.h:
 
-/home/gavriel/Scaricati/omnetpp-6.0.1/include/omnetpp.h:
+/home/alex/Programs/omnetpp-6.0.1/include/omnetpp.h:
 
-int_m.h:
+proposal_m.h:
 
-vector_m.h:
+collect_m.h:
+
+decide_m.h:
+
+maintain_m.h:

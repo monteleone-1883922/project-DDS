@@ -1,5 +1,5 @@
 #
-# OMNeT++/OMNEST Makefile for rete_test_ale
+# OMNeT++/OMNEST Makefile for garay_algorithm
 #
 # This file was generated with the command:
 #  opp_makemake -f --deep -O out -I.
@@ -7,7 +7,7 @@
 
 # Name of target to be created (-o option)
 TARGET_DIR = .
-TARGET_NAME = rete_test_ale$(D)
+TARGET_NAME = garay_algorithm$(D)
 TARGET = $(TARGET_NAME)$(EXE_SUFFIX)
 TARGET_IMPLIB = $(TARGET_NAME)$(IMPLIB_SUFFIX)
 TARGET_IMPDEF = $(TARGET_NAME)$(IMPDEF_SUFFIX)
@@ -33,14 +33,13 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS = $O/process.o $O/collect_m.o $O/decide_m.o $O/maintain_m.o $O/proposal_m.o
+OBJS = $O/MyMessage.o $O/process.o $O/kingSend_m.o $O/sendList_m.o $O/sendValue_m.o
 
 # Message files
 MSGFILES = \
-    collect.msg \
-    decide.msg \
-    maintain.msg \
-    proposal.msg
+    kingSend.msg \
+    sendList.msg \
+    sendValue.msg
 
 # SM files
 SMFILES =

@@ -1,10 +1,8 @@
 //
-simple process {
-
-
-
-        gates:
-        	inout gate[];
+simple process
+{
+    gates:
+        inout gate[];
 
 }
 
