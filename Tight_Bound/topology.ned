@@ -1,31 +1,23 @@
 network Topology
 {
     parameters:
-        int numInfected = 1;
-        int seed = 42;
+        int numInfected = default(1);
+        int seed = default(42);
         int maxMaintainRounds = 5;
         bool logs = false;
+        int numProcesses = default(6);
     types:
         channel Link extends ned.DelayChannel{
             delay = 1000ms;
         }
     submodules:
-        process[6]: process ;
+        process[numProcesses]: process ;
 
     connections:
-		process[0].gate++ <--> Link <--> process[5].gate++; 
-		process[0].gate++ <--> Link <--> process[4].gate++; 
-		process[0].gate++ <--> Link <--> process[3].gate++; 
-		process[0].gate++ <--> Link <--> process[2].gate++; 
-		process[0].gate++ <--> Link <--> process[1].gate++; 
-		process[1].gate++ <--> Link <--> process[5].gate++; 
-		process[1].gate++ <--> Link <--> process[4].gate++; 
-		process[1].gate++ <--> Link <--> process[3].gate++; 
-		process[1].gate++ <--> Link <--> process[2].gate++; 
-		process[2].gate++ <--> Link <--> process[5].gate++; 
-		process[2].gate++ <--> Link <--> process[4].gate++; 
-		process[2].gate++ <--> Link <--> process[3].gate++; 
-		process[3].gate++ <--> Link <--> process[5].gate++; 
-		process[3].gate++ <--> Link <--> process[4].gate++; 
-		process[4].gate++ <--> Link <--> process[5].gate++; 
+        
+        for i=0 .. numProcesses-2, for j=i+1 .. numProcesses-1 {
+            process[i].gate++ <--> Link <--> process[j].gate++;
+            
+        }
+		 
 }
