@@ -108,12 +108,9 @@ void process::createNewArrayInfectable(int numProcesses, std::vector<int> *proce
 
 
     for (int i = 0 ; i < numProcesses; i++){
-        if (i < correctProcess)
+        if (i != correctProcess)
             processes->push_back(i);
-        else
-            processes->push_back(i+1);
     }
-    processes->pop_back();
 }
 
 
@@ -143,17 +140,13 @@ int process::canDecide(int minNumber, int *list) {
     int count1 = 0;
     for (int i = 0; i < numSubmodules; i++) {
 
-        if (list[i] != -1) {
-            if (list[i] == 0) {
-                count0++;
-                if (count0 >= minNumber)
-                    return 0;
-            } else {
-                count1++;
-                if (count1 >= minNumber)
-                    return 1;
-            }
+        count0 += list[i] == 0;
+        count1 += list[i] == 1;
+
+        if (count1 >= minNumber || count0 >= minNumber){
+            return count1 >= minNumber;
         }
+
     }
 
     return -1;
@@ -165,7 +158,7 @@ void process::maintain(int decision,int numProcesses, bool infected) {
         if (!infected) {
             msg->setFinalDecision(decision);
         }
-        else{
+        else {
             int w = intuniform(-1,1);
             msg->setFinalDecision(w);
         }
@@ -177,6 +170,8 @@ void process::maintain(int decision,int numProcesses, bool infected) {
         }
     }
 }
+
+
 void process::propose(int v,int numProcesses, bool infected) {
 
     for (int i = 0; i < numProcesses; i++) {
@@ -199,6 +194,8 @@ void process::propose(int v,int numProcesses, bool infected) {
         }
     }
 }
+
+
 void process::collect(int v,int numProcesses, bool infected) {
 
     for (int i = 0; i < numProcesses; i++) {
@@ -376,16 +373,13 @@ void process::handleMessage(cMessage *msg) {
                 int count0 = 0;
                 int count1 = 0;
                 for (int k = 0; k < numSubmodules; k++) {
-                    if (Ev[k][j] == 0)
-                        count0++;
-                    else if (Ev[k][j] == 1)
-                        count1++;
+                    count0 += Ev[k][j] == 0;
+                    count1 += Ev[k][j] == 1;
 
                 }
-                if (count0 > 2 * numInfected)
-                    RV[j] = 0;
-                else if (count1 > 2 * numInfected)
-                    RV[j] = 1;
+                if (count0 > 2 * numInfected || count1 > 2 * numInfected) {
+                    RV[j] = count1 > 2 * numInfected;
+                }
 
             }
             if (log){

@@ -73,16 +73,22 @@ bool process::generateInfections(std::vector<int> *processes, int numInfected, i
     }
     return 0;
 }
+
+
 int* process::createAndInitArray(int size){
     int* array = new int[size]();
     initArray(array, size);
     return array;
 }
+
+
 void process::initArray(int* array, int size){
     for (int i = 0; i < size; i++) {
         array[i] = -1;
     }
 }
+
+
 int** process::createAndInit2dArray(int size){
     int** array = new int*[size]();
     for (int i = 0; i < size; i++) {
@@ -90,15 +96,16 @@ int** process::createAndInit2dArray(int size){
     }
     return array;
 }
+
+
 void process::createNewArrayInfectable(int numProcesses, std::vector<int> *processes, int correctProcess) {
     for (int i = 0 ; i < numProcesses; i++){
-        if (i < correctProcess)
+        if (i != correctProcess)
             processes->push_back(i);
-        else
-            processes->push_back(i+1);
     }
-    processes->pop_back();
 }
+
+
 //OUTPUT: it returns if the process is infected
 bool process::updateInfectedStatus(int * array) {
     int indice = getIndex();
@@ -108,6 +115,8 @@ bool process::updateInfectedStatus(int * array) {
     }
     return false;
 }
+
+
 //print vector values
 void process::logVector(std::ofstream& out, int *vector, int numSubmodules) {
     std::string vec = "";
@@ -116,6 +125,8 @@ void process::logVector(std::ofstream& out, int *vector, int numSubmodules) {
     }
     out << vec << std::endl;
 }
+
+
 void process::printVector(int id, int *vector, std::string nomeVettore,
         int numSubmodules) {
     // stampa i valori di un vettore
@@ -125,6 +136,8 @@ void process::printVector(int id, int *vector, std::string nomeVettore,
     }
     EV << id << " vettore " + nomeVettore + " = " << vec << endl;
 }
+
+
 void process::sendValue(int v,int numProcesses, bool infected) {
 
     for (int i = 0; i < numProcesses; i++) {
@@ -146,6 +159,8 @@ void process::sendValue(int v,int numProcesses, bool infected) {
         }
     }
 }
+
+
 void process::kingSend(int v,int numProcesses, bool infected) {
 
     for (int i = 0; i < numProcesses; i++) {
@@ -167,6 +182,8 @@ void process::kingSend(int v,int numProcesses, bool infected) {
         }
     }
 }
+
+
 void process::sendMV(int *array, int numProcesses, bool infected) {
     SendList *msg = new SendList();
     msg->setDataArraySize((numSubmodules));
@@ -188,6 +205,8 @@ void process::sendMV(int *array, int numProcesses, bool infected) {
     }
 
 }
+
+
 int process::countOne(int *array) {
     int counter = 0;
     for (int i = 0; i < numSubmodules; i++) {
@@ -196,6 +215,8 @@ int process::countOne(int *array) {
     }
     return counter;
 }
+
+
 void process::initialize() {
 
     network = getModuleByPath("Topology");
@@ -217,11 +238,11 @@ void process::initialize() {
     // Genera un numero casuale tra 0 e 1
     value = intuniform(0, 1);
 
-    if (log){
+    if (log) {
             file << "ROUND " << round << " -------------------------------------" << std::endl;
             file << "I choose " << value << std::endl;
 
-        }
+    }
 
     infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log);
 
@@ -299,19 +320,21 @@ void process::handleMessage(cMessage *msg) {
 
 
                 initArray(fix, numSubmodules);
+                int count0 = 0;
+                int count1 = 0;
                 for (int j = 0; j < numSubmodules; j++) {
-                    int count0 = 0;
-                    int count1 = 0;
+                    count0 = 0;
+                    count1 = 0;
                     for (int k = 0; k < numSubmodules; k++) {
                         if (echo[k][j] == 0)
                             count0++;
-                        if (echo[k][j] == 1)
+                        else if (echo[k][j] == 1)
                             count1++;
 
                     }
                     if (count0 > numSubmodules - 2 * numInfected)
                         fix[j] = 0;
-                    if (count1 > numSubmodules - 2 * numInfected)
+                    else if (count1 > numSubmodules - 2 * numInfected)
                         fix[j] = 1;
 
                 }
