@@ -35,6 +35,7 @@ private:
     simsignal_t decisionSignal;
     simsignal_t timeRoundSignal;
     SimTime roundStartTime;
+    bool emittedDecision = false;
 
 protected:
     virtual void initialize();
@@ -254,9 +255,9 @@ void process::initialize() {
     if (log){
         file << "SEND VALUE PHASE -------------------------------------------------" << std::endl;
     }
-    if (indexCorrectProcess == getIndex()) {
-        roundStartTime = simTime();
-    }
+
+    roundStartTime = simTime();
+
     sendValue(value,numSubmodules,infected);
     file.close();
 }
@@ -282,8 +283,10 @@ void process::handleMessage(cMessage *msg) {
             EV << "Ho ricevuto tutte le proposte \n";
             c = countOne(MV);
             value = c >= numSubmodules / 2;
-            if (indexCorrectProcess == getIndex() && (c >= numSubmodules - 2 * numInfected || c <= 2 * numInfected )) {
+            if (indexCorrectProcess == getIndex() && (c >= numSubmodules - 2 * numInfected || c <= 2 * numInfected ) && !emittedDecision) {
                 emit(decisionSignal, round);
+                emittedDecision = true;
+                EV << "Decision taken at round " << round << std::endl;
             }
             if (log) {
                 file << "received values = ";
@@ -387,7 +390,9 @@ void process::handleMessage(cMessage *msg) {
             file << "king sent = " << vKing << std::endl;
             file << "My value now is " << value << std::endl;
         }
+
         round++;
+        EV <<  "Begin round " << round << " -------------------------------------" << std::endl;
         bool oldStatus = infected;
 
 
@@ -409,10 +414,10 @@ void process::handleMessage(cMessage *msg) {
             EV  << "finished with value = " << value;
 
         }
-        if (indexCorrectProcess == getIndex()) {
-            emit(timeRoundSignal, simTime() - roundStartTime);
-            roundStartTime = simTime();
-        }
+
+        emit(timeRoundSignal, simTime() - roundStartTime);
+        roundStartTime = simTime();
+
 
     }
     file.close();

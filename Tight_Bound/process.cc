@@ -37,6 +37,8 @@ private:
     std::mt19937 infectionRng;
     cModule *network;
     bool log;
+    simsignal_t decisionSignal;
+    simsignal_t timeRoundSignal;
 
 protected:
     virtual void initialize();
@@ -246,6 +248,9 @@ void process::initialize() {
     network = getModuleByPath("Topology");
     numSubmodules = network->getSubmoduleVectorSize("process");
 
+
+    decisionSignal = registerSignal("decision");
+    timeRoundSignal = registerSignal("roundTime");
     std::uniform_int_distribution<int> distribution(0, numSubmodules-1);
     logFile = "results/process_" + std::to_string(getIndex()) + ".log";
     std::ofstream file(logFile, std::ios::app);

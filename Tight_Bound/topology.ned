@@ -3,12 +3,12 @@ network Topology
     parameters:
         int numInfected = default(1);
         int seed = default(42);
-        int maxMaintainRounds = 5;
-        bool logs = false;
+        int maxMaintainRounds = 1;
+        bool logs = default(false);
         int numProcesses = default(6);
     types:
         channel Link extends ned.DelayChannel{
-            delay = 1000ms;
+            delay = exponential(1000ms);
         }
     submodules:
         process[numProcesses]: process ;
