@@ -32,6 +32,9 @@ private:
     std::mt19937 infectionRng;
     cModule *network;
     int *fix;
+    simsignal_t decisionSignal;
+    simsignal_t timeRoundSignal;
+    SimTime roundStartTime;
 
 protected:
     virtual void initialize();
@@ -219,9 +222,11 @@ int process::countOne(int *array) {
 
 void process::initialize() {
 
+
     network = getModuleByPath("Topology");
     numSubmodules = network->getSubmoduleVectorSize("process");
-    
+    decisionSignal = registerSignal("decision");
+    timeRoundSignal = registerSignal("roundTime");
 
     logFile = "results/process_" + std::to_string(getIndex()) + ".log";
 
@@ -249,6 +254,9 @@ void process::initialize() {
     if (log){
         file << "SEND VALUE PHASE -------------------------------------------------" << std::endl;
     }
+    if (indexCorrectProcess == getIndex()) {
+        roundStartTime = simTime();
+    }
     sendValue(value,numSubmodules,infected);
     file.close();
 }
@@ -274,6 +282,9 @@ void process::handleMessage(cMessage *msg) {
             EV << "Ho ricevuto tutte le proposte \n";
             c = countOne(MV);
             value = c >= numSubmodules / 2;
+            if (indexCorrectProcess == getIndex() && (c >= numSubmodules - 2 * numInfected || c <= 2 * numInfected )) {
+                emit(decisionSignal, round);
+            }
             if (log) {
                 file << "received values = ";
                 logVector(file, MV, numSubmodules);
@@ -281,7 +292,9 @@ void process::handleMessage(cMessage *msg) {
                 file << "SEND MV PHASE -------------------------------------------------" << std::endl;
             }
             recivedMV = 0;
+
             sendMV(MV, numSubmodules, infected);
+
         }
     }
     if (dynamic_cast<SendList*>(msg)) {
@@ -368,7 +381,7 @@ void process::handleMessage(cMessage *msg) {
         } else {
             vKing = intuniform(-1, 1);
         }
-        if ((vKing == 0 || vKing == 1) && c < numSubmodules - 2 * numInfected)
+        if ((vKing == 0 || vKing == 1) && c < numSubmodules - 2 * numInfected && c > 2 * numInfected)
             value = vKing;
         if (log){
             file << "king sent = " << vKing << std::endl;
@@ -389,12 +402,16 @@ void process::handleMessage(cMessage *msg) {
             }
             cured = oldStatus && !infected;
             sendValue(value, numSubmodules, infected);
-        } else{
+        } else {
             if (log){
                 file << "finished with value = " << value << std::endl;
             }
             EV  << "finished with value = " << value;
 
+        }
+        if (indexCorrectProcess == getIndex()) {
+            emit(timeRoundSignal, simTime() - roundStartTime);
+            roundStartTime = simTime();
         }
 
     }
