@@ -6,6 +6,7 @@ network Topology
         bool logs = default(false);
         int numProcesses = default(7);
         int maxMaintainRounds = default(numProcesses+1);
+        int infectionSpeed = default(1);
     types:
         channel Link extends ned.DelayChannel{
             delay = exponential(1000ms);

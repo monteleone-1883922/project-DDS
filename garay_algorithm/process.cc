@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 using namespace omnetpp;
 
@@ -36,10 +39,14 @@ private:
     simsignal_t timeRoundSignal;
     SimTime roundStartTime;
     bool emittedDecision = false;
+    json results;
+    json rounds = json::array();
+    json roundJson;
+    int infecctionSpeed;
 
 protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage *msg) override;
     virtual void printVector(int id, int *vector, std::string nomeVettore,
             int numSubmodules);
     virtual void sendValue(int v, int numProcesses, bool infected);
@@ -54,6 +61,7 @@ protected:
     virtual void initArray(int *array, int size);
     virtual int** createAndInit2dArray(int size);
     virtual void logVector(std::ofstream& out, int *vector, int numSubmodules);
+    virtual void finish() override;
 };
 
 Define_Module(process);
@@ -228,6 +236,8 @@ void process::initialize() {
     numSubmodules = network->getSubmoduleVectorSize("process");
     decisionSignal = registerSignal("decision");
     timeRoundSignal = registerSignal("roundTime");
+    infecctionSpeed = network->par("infectionSpeed");
+
 
     logFile = "results/process_" + std::to_string(getIndex()) + ".log";
 
@@ -241,6 +251,14 @@ void process::initialize() {
     indexCorrectProcess = distribution(infectionRng);
     createNewArrayInfectable(numSubmodules,&infectableProcesses,indexCorrectProcess);
     numInfected = network->par("numInfected");
+
+    if (indexCorrectProcess == getIndex()) {
+        results["correct_process"] = indexCorrectProcess;
+        results["num_infected"] = numInfected;
+        results["num_processes"] = numSubmodules;
+    }
+
+
     // Genera un numero casuale tra 0 e 1
     value = intuniform(0, 1);
 
@@ -251,6 +269,8 @@ void process::initialize() {
     }
 
     infected = generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log);
+    roundJson["infected"] = infected;
+
 
     if (log){
         file << "SEND VALUE PHASE -------------------------------------------------" << std::endl;
@@ -400,8 +420,10 @@ void process::handleMessage(cMessage *msg) {
             if (log){
                 file << "ROUND " << round << " -------------------------------------" << std::endl;
             }
-            infected = generateInfections(&infectableProcesses, numInfected,
-                    getIndex(), &infectionRng, file, log);
+            if (round % infecctionSpeed == 0) {
+                infected = generateInfections(&infectableProcesses, numInfected,
+                        getIndex(), &infectionRng, file, log);
+            }
             if (log){
                 file << "SEND VALUE PHASE -------------------------------------------------" << std::endl;
             }
@@ -414,7 +436,11 @@ void process::handleMessage(cMessage *msg) {
             EV  << "finished with value = " << value;
 
         }
-
+        roundJson["round_time"] = (simTime() - roundStartTime).dbl();
+        rounds.push_back(roundJson);
+        roundJson.clear();
+        roundJson["infected"] = infected;
+        roundJson["cured"] = cured;
         emit(timeRoundSignal, simTime() - roundStartTime);
         roundStartTime = simTime();
 
@@ -423,4 +449,41 @@ void process::handleMessage(cMessage *msg) {
     file.close();
 
 }
+
+void process::finish()
+{
+    results["rounds"] = rounds;
+    std::ostringstream filename;
+    filename << "results_" << getIndex() << ".json";
+    // Scrittura del JSON su file
+    std::ofstream file(filename.str());
+    if (file.is_open()) {
+        file << results.dump(4);  // dump(4) per formattare con 4 spazi di indentazione
+        file.close();
+        EV << "File JSON salvato con successo!" << endl;
+    } else {
+        EV << "Errore nell'apertura del file!" << endl;
+    }
+
+    bool allFilesExist = true;
+    std::vector<int> nodeIds;
+    for (int i = 0; i <= numSubmodules; i++) {
+        nodeIds.push_back(i);
+    }
+    for (int id : nodeIds) {
+        std::ostringstream otherFilename;
+        otherFilename << "results_module_" << id << ".json";
+        struct stat buffer;
+        if (stat(otherFilename.str().c_str(), &buffer) != 0) {
+            allFilesExist = false;
+            break;
+        }
+    }
+
+    if (allFilesExist) {
+        system("python3 scripts/merge_results.py");
+
+    }
+}
+
 
