@@ -305,6 +305,7 @@ void process::handleMessage(cMessage *msg) {
             value = c >= numSubmodules / 2;
             if (indexCorrectProcess == getIndex() && (c >= numSubmodules - 2 * numInfected || c <= 2 * numInfected ) && !emittedDecision) {
                 emit(decisionSignal, round);
+                results["rounds_to_decide"] = round;
                 emittedDecision = true;
                 EV << "Decision taken at round " << round << std::endl;
             }
@@ -472,7 +473,7 @@ void process::finish()
     }
     for (int id : nodeIds) {
         std::ostringstream otherFilename;
-        otherFilename << "results_module_" << id << ".json";
+        otherFilename << "results_" << id << ".json";
         struct stat buffer;
         if (stat(otherFilename.str().c_str(), &buffer) != 0) {
             allFilesExist = false;
@@ -481,8 +482,14 @@ void process::finish()
     }
 
     if (allFilesExist) {
-        system("python3 scripts/merge_results.py");
+        int result = system("python3 scripts/merge_results.py");
 
+        // Controlla il codice di ritorno
+        if (result == 0) {
+            EV << "Lo script Python è stato eseguito correttamente." << endl;
+        } else {
+            EV << "Errore nell'esecuzione dello script Python, codice di ritorno: " << result << endl;
+        }
     }
 }
 
