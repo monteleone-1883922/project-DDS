@@ -43,6 +43,7 @@ private:
     json rounds = json::array();
     json roundJson;
     int infecctionSpeed;
+    std::string runName;
 
 protected:
     virtual void initialize() override;
@@ -251,6 +252,8 @@ void process::initialize() {
     indexCorrectProcess = distribution(infectionRng);
     createNewArrayInfectable(numSubmodules,&infectableProcesses,indexCorrectProcess);
     numInfected = network->par("numInfected");
+
+    runName = "seed-" + network->par("seed").str() + "_infected-" + network->par("numInfected").str() + "_speed-" + network->par("infectionSpeed").str() + "_numProc-" + std::to_string(numSubmodules);
 
     if (indexCorrectProcess == getIndex()) {
         results["correct_process"] = indexCorrectProcess;
@@ -484,11 +487,23 @@ void process::finish()
 
     if (allFilesExist) {
         EV << "process " << getIndex() << ": tutti i file sono stati creati correttamente" << endl;
-        int result = system("python3 scripts/merge_results.py");
+        std::ostringstream command;
+            command << "python3 scripts/merge_results.py " << runName;
+        int result = system(command.str().c_str());
 
         // Controlla il codice di ritorno
         if (result == 0) {
             EV << "Lo script Python è stato eseguito correttamente." << endl;
+            for (int id : nodeIds) {
+                std::ostringstream otherFilename;
+                otherFilename << "results/results_" << id << ".json";
+                if (std::remove(otherFilename.str().c_str()) == 0) {
+                    std::cout << "File " << otherFilename.str() << " rimosso con successo." << std::endl;
+                } else {
+                    std::perror(("Errore nella rimozione del file " + otherFilename.str()).c_str());
+                }
+            }
+
         } else {
             EV << "Errore nell'esecuzione dello script Python, codice di ritorno: " << result << endl;
         }

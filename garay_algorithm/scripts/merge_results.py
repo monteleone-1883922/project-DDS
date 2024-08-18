@@ -1,8 +1,9 @@
 import json
 import os
+import sys
 
 
-def merge_results():
+def merge_results(run_name: str):
     next_file_exists = True
     i = 0
     rounds = []
@@ -24,11 +25,11 @@ def merge_results():
             "num_processes"] if num_processes is None and "num_processes" in results else num_processes
         num_infected = results["num_infected"] if num_infected is None and "num_infected" in results else num_infected
         for j, round in enumerate(results["rounds"]):
-            if len(rounds) <= len(results["rounds"]):
+            if len(rounds) < len(results["rounds"]):
                 rounds.append({})
             if round["infected"]:
                 rounds[j]["infected"] = rounds[j].get("infected", []) + [i]
-            elif round["cured"]:
+            elif "cured" in round and round["cured"]:
                 rounds[j]["cured"] = rounds[j].get("cured", []) + [i]
             rounds[j]["round_time"] = rounds[j].get("round_time", []) + [round["round_time"]]
 
@@ -42,14 +43,12 @@ def merge_results():
         "num_infected": num_infected,
         "rounds": rounds,
     }
-    for filename in os.listdir("results"):
-        if filename.endswith('.json'):
-            file_path = os.path.join("results", filename)
-            os.remove(file_path)
 
-    with open("results/merged_results.json", 'w') as f:
+
+    with open(f"results/{run_name}_merged_results.json", 'w') as f:
         json.dump(result, f, indent=4)
 
 
 if __name__ == "__main__":
-    merge_results()
+    run_name = sys.argv[1]
+    merge_results(run_name)
