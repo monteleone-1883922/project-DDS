@@ -455,33 +455,35 @@ void process::finish()
 {
     results["rounds"] = rounds;
     std::ostringstream filename;
-    filename << "results_" << getIndex() << ".json";
+    filename << "results/results_" << getIndex() << ".json";
     // Scrittura del JSON su file
     std::ofstream file(filename.str());
     if (file.is_open()) {
         file << results.dump(4);  // dump(4) per formattare con 4 spazi di indentazione
         file.close();
-        EV << "File JSON salvato con successo!" << endl;
+        EV << "process " << getIndex() << " File JSON salvato con successo!" << endl;
     } else {
         EV << "Errore nell'apertura del file!" << endl;
     }
 
     bool allFilesExist = true;
     std::vector<int> nodeIds;
-    for (int i = 0; i <= numSubmodules; i++) {
+    for (int i = 0; i < numSubmodules; i++) {
         nodeIds.push_back(i);
     }
     for (int id : nodeIds) {
         std::ostringstream otherFilename;
-        otherFilename << "results_" << id << ".json";
+        otherFilename << "results/results_" << id << ".json";
         struct stat buffer;
         if (stat(otherFilename.str().c_str(), &buffer) != 0) {
             allFilesExist = false;
+            EV << "process " << getIndex() << ": il file " << otherFilename.str() << " non esiste" << endl;
             break;
         }
     }
 
     if (allFilesExist) {
+        EV << "process " << getIndex() << ": tutti i file sono stati creati correttamente" << endl;
         int result = system("python3 scripts/merge_results.py");
 
         // Controlla il codice di ritorno
