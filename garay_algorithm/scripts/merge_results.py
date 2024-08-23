@@ -45,7 +45,7 @@ def merge_results(run_name: str):
     }
 
 
-    with open(f"results/{run_name}_merged_results.json", 'w') as f:
+    with open(f"results/merged/{run_name}_merged_results.json", 'w') as f:
         json.dump(result, f, indent=4)
 
 
