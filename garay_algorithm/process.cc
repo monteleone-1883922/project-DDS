@@ -27,7 +27,7 @@ private:
     int c;
     int k; //index of the king
     std::string logFile;
-    bool log = 1;
+    bool log = 0;
     int numInfected;
     int indexCorrectProcess;
     std::vector<int> infectableProcesses;
@@ -44,6 +44,7 @@ private:
     json roundJson;
     int infecctionSpeed;
     std::string runName;
+    KingSend *pendingKingMsg;
 
 protected:
     virtual void initialize() override;
@@ -242,7 +243,7 @@ void process::initialize() {
 
     logFile = "results/process_" + std::to_string(getIndex()) + ".log";
 
-    std::ofstream file(logFile, std::ios::app);
+
     std::uniform_int_distribution<int> distribution(0, numSubmodules-1);
 
     MV = createAndInitArray(numSubmodules);
@@ -253,19 +254,26 @@ void process::initialize() {
     createNewArrayInfectable(numSubmodules,&infectableProcesses,indexCorrectProcess);
     numInfected = network->par("numInfected");
 
+   // if (network->par("seed").intValue() == 46){
+     //   log = 1;
+  //  }
     runName = "seed-" + network->par("seed").str() + "_infected-" + network->par("numInfected").str() + "_speed-" + network->par("infectionSpeed").str() + "_numProc-" + std::to_string(numSubmodules);
 
     if (indexCorrectProcess == getIndex()) {
+        system( "./scripts/clear_logs.sh ");
         results["correct_process"] = indexCorrectProcess;
         results["num_infected"] = numInfected;
         results["num_processes"] = numSubmodules;
+
     }
+    std::ofstream file(logFile, std::ios::app);
 
 
     // Genera un numero casuale tra 0 e 1
     value = intuniform(0, 1);
 
     if (log) {
+            file << "seed = " << network->par("seed").str() << std::endl;
             file << "ROUND " << round << " -------------------------------------" << std::endl;
             file << "I choose " << value << std::endl;
 
@@ -353,7 +361,7 @@ void process::handleMessage(cMessage *msg) {
                 }
             }
 
-            recivedEcho = 0;
+
             if (cured) {
 
                 //PROCEDURE RECONSTRUCT(r)
@@ -397,58 +405,118 @@ void process::handleMessage(cMessage *msg) {
 
             if (k == getIndex())
                 kingSend(value, numSubmodules, infected);
+
+            if (pendingKingMsg) {
+                recivedEcho = 0;
+
+                int vKing;
+                if (!infected) {
+                    vKing = pendingKingMsg->getValue();
+                } else {
+                    vKing = intuniform(-1, 1);
+                }
+                if ((vKing == 0 || vKing == 1) && c < numSubmodules - 2 * numInfected && c > 2 * numInfected)
+                    value = vKing;
+                if (log){
+                    file << "king sent = " << vKing << std::endl;
+                    file << "My value now is " << value << std::endl;
+                }
+
+
+
+
+                if (round < (network->par("maxMaintainRounds").intValue())) {
+                    round++;
+                    EV <<  "Begin round " << round << " -------------------------------------" << std::endl;
+                    bool oldStatus = infected;
+                    EV << "max rounds is " << network->par("maxMaintainRounds").intValue() << " we are at round " << round << std::endl;
+                    if (log){
+                        file << "ROUND " << round << " -------------------------------------" << std::endl;
+                    }
+                    if (round % infecctionSpeed == 0) {
+                        infected = generateInfections(&infectableProcesses, numInfected,
+                                getIndex(), &infectionRng, file, log);
+                    }
+                    if (log){
+                        file << "SEND VALUE PHASE -------------------------------------------------" << std::endl;
+                    }
+                    cured = oldStatus && !infected;
+                    sendValue(value, numSubmodules, infected);
+                } else {
+                    if (log){
+                        file << "finished with value = " << value << std::endl;
+                    }
+                    EV  << "finished with value = " << value << std::endl;
+
+                }
+                roundJson["round_time"] = (simTime() - roundStartTime).dbl();
+                rounds.push_back(roundJson);
+                roundJson.clear();
+                roundJson["infected"] = infected;
+                roundJson["cured"] = cured;
+                emit(timeRoundSignal, simTime() - roundStartTime);
+                roundStartTime = simTime();
+                pendingKingMsg = nullptr;
+            }
         }
     }
 
     if (dynamic_cast<KingSend*>(msg)) {
         KingSend *cMsg = check_and_cast<KingSend*>(msg);
-        int vKing;
-        if (!infected) {
-            vKing = cMsg->getValue();
+        if (recivedEcho == numSubmodules) {
+            recivedEcho = 0;
+
+            int vKing;
+            if (!infected) {
+                vKing = cMsg->getValue();
+            } else {
+                vKing = intuniform(-1, 1);
+            }
+            if ((vKing == 0 || vKing == 1) && c < numSubmodules - 2 * numInfected && c > 2 * numInfected)
+                value = vKing;
+            if (log){
+                file << "king sent = " << vKing << std::endl;
+                file << "My value now is " << value << std::endl;
+            }
+
+
+
+
+            if (round < (network->par("maxMaintainRounds").intValue())) {
+                round++;
+                EV <<  "Begin round " << round << " -------------------------------------" << std::endl;
+                bool oldStatus = infected;
+                EV << "max rounds is " << network->par("maxMaintainRounds").intValue() << " we are at round " << round << std::endl;
+                if (log){
+                    file << "ROUND " << round << " -------------------------------------" << std::endl;
+                }
+                if (round % infecctionSpeed == 0) {
+                    infected = generateInfections(&infectableProcesses, numInfected,
+                            getIndex(), &infectionRng, file, log);
+                }
+                if (log){
+                    file << "SEND VALUE PHASE -------------------------------------------------" << std::endl;
+                }
+                cured = oldStatus && !infected;
+                sendValue(value, numSubmodules, infected);
+            } else {
+                if (log){
+                    file << "finished with value = " << value << std::endl;
+                }
+                EV  << "finished with value = " << value << std::endl;
+
+            }
+            roundJson["round_time"] = (simTime() - roundStartTime).dbl();
+            rounds.push_back(roundJson);
+            roundJson.clear();
+            roundJson["infected"] = infected;
+            roundJson["cured"] = cured;
+            emit(timeRoundSignal, simTime() - roundStartTime);
+            roundStartTime = simTime();
+
         } else {
-            vKing = intuniform(-1, 1);
+            pendingKingMsg = cMsg->dup();
         }
-        if ((vKing == 0 || vKing == 1) && c < numSubmodules - 2 * numInfected && c > 2 * numInfected)
-            value = vKing;
-        if (log){
-            file << "king sent = " << vKing << std::endl;
-            file << "My value now is " << value << std::endl;
-        }
-
-        round++;
-        EV <<  "Begin round " << round << " -------------------------------------" << std::endl;
-        bool oldStatus = infected;
-
-
-        if (round < (network->par("maxMaintainRounds").intValue())) {
-            if (log){
-                file << "ROUND " << round << " -------------------------------------" << std::endl;
-            }
-            if (round % infecctionSpeed == 0) {
-                infected = generateInfections(&infectableProcesses, numInfected,
-                        getIndex(), &infectionRng, file, log);
-            }
-            if (log){
-                file << "SEND VALUE PHASE -------------------------------------------------" << std::endl;
-            }
-            cured = oldStatus && !infected;
-            sendValue(value, numSubmodules, infected);
-        } else {
-            if (log){
-                file << "finished with value = " << value << std::endl;
-            }
-            EV  << "finished with value = " << value;
-
-        }
-        roundJson["round_time"] = (simTime() - roundStartTime).dbl();
-        rounds.push_back(roundJson);
-        roundJson.clear();
-        roundJson["infected"] = infected;
-        roundJson["cured"] = cured;
-        emit(timeRoundSignal, simTime() - roundStartTime);
-        roundStartTime = simTime();
-
-
     }
     file.close();
 
@@ -457,6 +525,20 @@ void process::handleMessage(cMessage *msg) {
 void process::finish()
 {
     results["rounds"] = rounds;
+    if (indexCorrectProcess == getIndex()) {
+      //  std::ofstream file(logFile, std::ios::app);
+     //   EV <<"size == " << results.size() << std::endl;
+   //     file << "adadadadad correct is " << indexCorrectProcess << std::endl;
+    //       if (network->par("seed").intValue() == 60){
+     //          file << results.size() << std::endl;
+   //           file << "my index is " << getIndex() << std::endl;
+       //       file << "entratoooooo" << std::endl;
+    //          file << results.dump(4) << std::endl;
+
+        //  }
+       //    file.close();
+
+       }
     std::ostringstream filename;
     filename << "results/results_" << getIndex() << ".json";
     // Scrittura del JSON su file
@@ -466,7 +548,9 @@ void process::finish()
         file.close();
         EV << "process " << getIndex() << " File JSON salvato con successo!" << endl;
     } else {
-        EV << "Errore nell'apertura del file!" << endl;
+        std::ofstream file(logFile, std::ios::app);
+        file << "Errore nell'apertura del file!" << endl;
+        file.close();
     }
 
     bool allFilesExist = true;
@@ -488,7 +572,7 @@ void process::finish()
     if (allFilesExist) {
         EV << "process " << getIndex() << ": tutti i file sono stati creati correttamente" << endl;
         std::ostringstream command;
-            command << "python3 scripts/merge_results.py " << runName;
+        command << "python3 scripts/merge_results.py " << runName << " " << network->par("maxMaintainRounds").intValue() + 1;
         int result = system(command.str().c_str());
 
         // Controlla il codice di ritorno
