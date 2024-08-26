@@ -45,6 +45,8 @@ private:
     int infecctionSpeed;
     std::string runName;
     KingSend *pendingKingMsg;
+    bool decided = 0;
+    int *decisionCheckMV;
 
 protected:
     virtual void initialize() override;
@@ -64,6 +66,7 @@ protected:
     virtual int** createAndInit2dArray(int size);
     virtual void logVector(std::ofstream& out, int *vector, int numSubmodules);
     virtual void finish() override;
+    virtual bool decisionTaken(std::vector<int> *processes, int numInfected,int *array, int decidedVal);
 };
 
 Define_Module(process);
@@ -197,6 +200,22 @@ void process::kingSend(int v,int numProcesses, bool infected) {
     }
 }
 
+bool process::decisionTaken(std::vector<int> *processes, int numInfected,int *array, int decidedVal){
+    int counter = 0;
+    for (int i = 0; i < processes->size(); i++) {
+        if (array[i] == decidedVal){
+            int add = 1;
+            for (int j = 0; j < numInfected; j++) {
+                if ((*processes)[j] == i){
+                    add = 0;
+                    break;
+                }
+            }
+            counter += add;
+        }
+    }
+    return counter >= numSubmodules - 2 * numInfected;
+}
 
 void process::sendMV(int *array, int numProcesses, bool infected) {
     SendList *msg = new SendList();
@@ -247,6 +266,7 @@ void process::initialize() {
     std::uniform_int_distribution<int> distribution(0, numSubmodules-1);
 
     MV = createAndInitArray(numSubmodules);
+    decisionCheckMV = createAndInitArray(numSubmodules);
     echo = createAndInit2dArray(numSubmodules);
     fix = createAndInitArray(numSubmodules);
     infectionRng.seed(network->par("seed"));
@@ -304,6 +324,7 @@ void process::handleMessage(cMessage *msg) {
         if (!infected) {
             MV[my_msg->getSender()] = my_msg->getValue();
         } else {
+            decisionCheckMV[my_msg->getSender()] = my_msg->getValue();
             MV[my_msg->getSender()] = intuniform(-1, 1);
         }
 
@@ -312,13 +333,23 @@ void process::handleMessage(cMessage *msg) {
         if (recivedMV == numSubmodules) {
 
             EV << "Ho ricevuto tutte le proposte \n";
+            if (infected){
+                int cCheck = countOne(decisionCheckMV);
+                int valueCheck = c >= numSubmodules / 2;
+                if (cCheck >= numSubmodules - 2 * numInfected || cCheck <= 2 * numInfected ){
+                    decided = decisionTaken(&infectableProcesses,numInfected,decisionCheckMV,valueCheck);
+                }
+            }
             c = countOne(MV);
             value = c >= numSubmodules / 2;
-            if (indexCorrectProcess == getIndex() && (c >= numSubmodules - 2 * numInfected || c <= 2 * numInfected ) && !emittedDecision) {
-                emit(decisionSignal, round);
-                results["rounds_to_decide"] = round;
-                emittedDecision = true;
-                EV << "Decision taken at round " << round << std::endl;
+            if (c >= numSubmodules - 2 * numInfected || c <= 2 * numInfected ){
+                decided = decisionTaken(&infectableProcesses,numInfected,MV,value);
+                if (indexCorrectProcess == getIndex() && !emittedDecision) {
+                    emit(decisionSignal, round);
+                    results["rounds_to_decide"] = round;
+                    emittedDecision = true;
+                    EV << "Decision taken at round " << round << std::endl;
+                }
             }
             if (log) {
                 file << "received values = ";
@@ -482,7 +513,7 @@ void process::handleMessage(cMessage *msg) {
 
 
 
-            if (round < (network->par("maxMaintainRounds").intValue())) {
+            if (!decided) {
                 round++;
                 EV <<  "Begin round " << round << " -------------------------------------" << std::endl;
                 bool oldStatus = infected;
