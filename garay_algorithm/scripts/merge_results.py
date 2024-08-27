@@ -5,6 +5,7 @@ import pdb
 
 
 def merge_results(run_name: str, num_rounds):
+    num_rounds += 1
     next_file_exists = True
     i = 0
     rounds = [{} for i in range(num_rounds)]
@@ -52,7 +53,11 @@ def merge_results(run_name: str, num_rounds):
         next_file_exists = os.path.exists("results/results_{}.json".format(i + 1))
         i += 1
 
+    if rounds_to_decide is None:
+        with open("results/error.txt", 'a') as f:
+            f.write("Error: rounds_to_decide is None\n" + run_name + "\n")
     result = {
+        "run_name": run_name,
         "rounds_to_decide": rounds_to_decide,
         "correct_process": correct_process,
         "num_processes": num_processes,

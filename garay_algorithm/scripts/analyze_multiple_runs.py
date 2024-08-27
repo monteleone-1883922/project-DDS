@@ -15,8 +15,7 @@ def merge_results(dir: str):
     mean_time_all_rounds = []
     rounds_means_times = []
     final_results = {}
-    num_rounds = 0
-
+    
 
     try:
         for file in os.listdir("results/" + dir):
@@ -29,6 +28,9 @@ def merge_results(dir: str):
                 os.remove("results/" + dir + "/" + file)
                 if results["rounds_to_decide"] is None:
                     print(file)
+                if results["rounds_to_decide"] is None:
+                     with open(f"results/experiments/error_file.json", 'w') as f:
+                        json.dump(results, f, indent=4)
                 rounds_to_decide.append(results["rounds_to_decide"])
     
                 correct_process = results["correct_process"]
@@ -37,12 +39,6 @@ def merge_results(dir: str):
                 if "num_processes" not in final_results:
                     final_results["num_processes"] = results["num_processes"]
                 rounds = results["rounds"]
-                num_rounds = len(rounds) if num_rounds == 0 else num_rounds
-                if num_rounds != len(rounds):
-                    print("Error: Different number of rounds in the results")
-                    print(file)
-                    print(num_rounds)
-                    print(len(rounds))
                 mean_time_round = []  
                 for j, round in enumerate(rounds):
                     if round:
@@ -57,9 +53,17 @@ def merge_results(dir: str):
                 mean_time_all_rounds.append(mean_time_round)
 
     
-        for i in range(len(mean_time_all_rounds[0])):
-           
-            rounds_means_times.append(np.mean([round[i] for round in mean_time_all_rounds]))
+        file = ''
+        tmp_rounds_times = []
+        for process_round_times in mean_time_all_rounds:
+            for id, time in enumerate(process_round_times):
+                if len(tmp_rounds_times) <= id:
+                    tmp_rounds_times.append([time])
+                else:
+                    tmp_rounds_times[id].append(time)
+                    
+        for times in tmp_rounds_times:
+            rounds_means_times.append(np.mean(times))
         
         final_results["mean_rounds_to_decide"] = np.mean(rounds_to_decide)
         final_results["max_rounds_to_decide"] = int(np.max(rounds_to_decide))
@@ -99,7 +103,7 @@ def merge_results(dir: str):
             
             
         
-    with open(f"results/experiments/{experiment}.json", 'w') as f:
+    with open(f"results/experiments/{experiments}.json", 'w') as f:
         json.dump(final_results, f, indent=4)
 
     plt.figure(figsize=(10, 6))
