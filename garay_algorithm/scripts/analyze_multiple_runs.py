@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def merge_results(dir: str):
+def merge_results(dir: str, show_results: bool):
     experiments = ''
     rounds_to_decide = []
     round_times = []
@@ -102,24 +102,25 @@ def merge_results(dir: str):
             json.dump(results, f, indent=4)
             
             
-        
+    final_results["rounds_means_times"] = rounds_means_times
     with open(f"results/experiments/{experiments}.json", 'w') as f:
         json.dump(final_results, f, indent=4)
-
-    plt.figure(figsize=(10, 6))
-    print(rounds_means_times)
-    plt.plot(rounds_means_times, label='times through rounds')
-    plt.xlabel('Round')
-    plt.ylabel('Mean Time')
-    plt.title('Mean Time per Round for All Runs')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+    if show_results:
+        plt.figure(figsize=(10, 6))
+        
+        plt.plot(rounds_means_times, label='times through rounds')
+        plt.xlabel('Round')
+        plt.ylabel('Mean Time')
+        plt.title('Mean Time per Round for All Runs')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
 
 
 def main():
     dir = sys.argv[1]
-    merge_results(dir)
+    show_results = len(sys.argv) > 2
+    merge_results(dir, show_results)
 
 
 if __name__ == '__main__':

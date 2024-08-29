@@ -593,9 +593,14 @@ void process::finish()
                     std::perror(("Errore nella rimozione del file " + otherFilename.str()).c_str());
                 }
             }
+             if (network->par("seed").intValue() == network->par("numExperiments").intValue()){
+                 command << "python3 scripts/analyze_multiple_runs.py " << "merged true";
+                 int result = system(command.str().c_str());
+             }
 
-        } else {
-            EV << "Errore nell'esecuzione dello script Python, codice di ritorno: " << result << endl;
+        }
+        if (result != 0){
+            EV << "Errore nell'esecuzione dello script " << command.str() << ", codice di ritorno: " << result << endl;
         }
     }
 }
