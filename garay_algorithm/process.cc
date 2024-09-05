@@ -339,17 +339,23 @@ void process::handleMessage(cMessage *msg) {
             recivedMV++;
             printVector(getIndex(), MV, "MV", numSubmodules);
             if (recivedMV == numSubmodules) {
-                if (log){
+                if (log && infected){
+                    file << "check vactor = ";
                     logVector(file,decisionCheckMV , numSubmodules);
                 }
                 EV << "Ho ricevuto tutte le proposte \n";
                 if (infected && !decided){
                     int cCheck = countOne(decisionCheckMV);
-                    int valueCheck = c >= numSubmodules / 2;
+                    file << "check = " << cCheck << std::endl;
+                    int valueCheck = cCheck >= numSubmodules / 2;
                     if (cCheck >= numSubmodules - 2 * numInfected || cCheck <= 2 * numInfected ){
                         decided = decisionTaken(&infectableProcesses,numInfected,decisionCheckMV,valueCheck);
                         if (decided){
                             EV <<  getIndex() << "Decision taken at round " << round << " decided value " << value << " ---------------------------------------" << std::endl;
+                            if (log){
+                                file <<  getIndex() << " Decision taken at round " << round << " decided value " << value << " ---------------------------------------"<< std::endl;
+                                file << results.dump(4) << std::endl;
+                            }
                         }
                     }
                 }
@@ -361,11 +367,17 @@ void process::handleMessage(cMessage *msg) {
                         int a = 5;
                     }
                     decided = decisionTaken(&infectableProcesses,numInfected,MV,value);
+
+
+
+
                     if (decided){
-                        EV <<  getIndex() << " Decision taken at round " << round << " decided value " << value << " ---------------------------------------"<< std::endl;
-                    }
-                    if (indexCorrectProcess == getIndex() && decided){
                         results["rounds_to_decide"] = round;
+                        EV <<  getIndex() << " Decision taken at round " << round << " decided value " << value << " ---------------------------------------"<< std::endl;
+                        if (log){
+                            file <<  getIndex() << " Decision taken at round " << round << " decided value " << value << " ---------------------------------------"<< std::endl;
+                            file << results.dump(4) << std::endl;
+                        }
                     }
 
                 }

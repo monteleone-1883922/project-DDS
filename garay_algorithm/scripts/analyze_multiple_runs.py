@@ -19,7 +19,7 @@ def merge_results(dir: str, show_results: bool):
     try:
         for file in os.listdir("results/" + dir):
             if file.endswith(".json"):
-                experiments = file[file.find("_")-1:-20] if experiments == "" else experiments
+                experiments = file[file.find("_")+1:-20] if experiments == "" else experiments
 
                 with open("results/" + dir + "/" + file, 'r') as f:
                     results = json.load(f)
@@ -82,11 +82,11 @@ def merge_results(dir: str, show_results: bool):
         final_results["max_correct_round_times"] = np.max(correct_round_times)
         final_results["min_correct_round_times"] = np.min(correct_round_times)
         final_results["var_correct_round_times"] = np.var(correct_round_times)
-
-        final_results["mean_cured_round_times"] = np.mean(cured_round_times)
-        final_results["max_cured_round_times"] = np.max(cured_round_times)
-        final_results["min_cured_round_times"] = np.min(cured_round_times)
-        final_results["var_cured_round_times"] = np.var(cured_round_times)
+        if len(cured_round_times) != 0:
+            final_results["mean_cured_round_times"] = np.mean(cured_round_times)
+            final_results["max_cured_round_times"] = np.max(cured_round_times)
+            final_results["min_cured_round_times"] = np.min(cured_round_times)
+            final_results["var_cured_round_times"] = np.var(cured_round_times)
     except Exception as e:
         with open(f"results/{dir}/errors.txt", 'w') as f:
             f.write(file + '\n')

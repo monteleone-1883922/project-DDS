@@ -54,8 +54,11 @@ def merge_results(run_name: str, num_rounds: int):
         i += 1
 
     if rounds_to_decide is None:
+        with open(f"results/process_{correct_process}.log", "r") as f:
+            tmp = f.readlines()
         with open("results/error.txt", 'a') as f:
             f.write("Error: rounds_to_decide is None\n" + run_name + "\n")
+            f.writelines(tmp)
     result = {
         "run_name": run_name,
         "rounds_to_decide": rounds_to_decide,
