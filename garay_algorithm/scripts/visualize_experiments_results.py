@@ -24,6 +24,7 @@ def visualize_results(visualization):
         num_infected = visualization['numInfected'] if 'numInfected' in visualization else None
         num_processes = visualization['numProcesses'] if 'numProcesses' in visualization else None
         infection_speed = visualization['infectionSpeed'] if 'infectionSpeed' in visualization else None
+        x_label = 'numInfected' if num_infected is None else 'numProcesses' if num_processes is None else 'infectionSpeed'
         fields_data = {}
 
         # Collect data from all JSON files in the experiments directory
@@ -35,12 +36,13 @@ def visualize_results(visualization):
                 with open(os.path.join(EXPERIMENTS_DIR, file), 'r') as f:
                     results = json.load(f)
                 for key, value in results.items():
-                    fields_data[key] = fields_data.get(key, []) + [value]
+                    if value is not None:
+                        fields_data[key] = fields_data.get(key, []) + [value]
         for field, data in fields_data.items():
             plt.figure(figsize=(10, 6))
 
             plt.plot(data, label=field)
-            plt.xlabel('experiment')
+            plt.xlabel(x_label)
             plt.ylabel(field.replace('_', ' ').title())
             plt.title(f'{field.replace("_", " ").title()} per Experiment')
             plt.legend()
