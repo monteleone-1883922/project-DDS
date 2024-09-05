@@ -256,7 +256,7 @@ void process::initialize() {
     network = getModuleByPath("Topology");
     numSubmodules = network->getSubmoduleVectorSize("process");
 
-    infecctionSpeed = network->par("infectionSpeed");
+    infecctionSpeed = network->par("infectionSpeed").intValue();
     log = network->par("logs").boolValue();
 
     logFile = "results/process_" + std::to_string(getIndex()) + ".log";
@@ -270,6 +270,7 @@ void process::initialize() {
     fix = createAndInitArray(numSubmodules);
     infectionRng.seed(network->par("seed"));
     indexCorrectProcess = distribution(infectionRng);
+    pendingKingMsg = nullptr;
     createNewArrayInfectable(numSubmodules,&infectableProcesses,indexCorrectProcess);
     numInfected = network->par("numInfected");
 
@@ -308,6 +309,9 @@ void process::initialize() {
     roundStartTime = simTime();
 
     sendValue(value,numSubmodules,infected, round);
+    if (log){
+            file << "sent value" << std::endl;
+        }
     file.close();
 }
 
@@ -374,6 +378,10 @@ void process::handleMessage(cMessage *msg) {
                 recivedMV = 0;
 
                 sendMV(MV, numSubmodules, infected);
+                if (log) {
+
+                    file << "MV sent" << std::endl;
+                }
 
             }
         }
@@ -383,6 +391,7 @@ void process::handleMessage(cMessage *msg) {
         SendList *myMsg = check_and_cast<SendList*>(msg);
         recivedEcho++;
         int sender = myMsg->getSender();
+
 
         for (int i = 0; i < numSubmodules; i++) {
             int element;
@@ -498,11 +507,14 @@ void process::handleMessage(cMessage *msg) {
                 }
                 cured = oldStatus && !infected;
                 sendValue(value, numSubmodules, infected, round);
-                if (pendingProposals.size() > 0) {
-                    for (int i = 0; i < pendingProposals.size(); i++) {
-                        scheduleAt(simTime(), pendingProposals[i].dup());
-                    }
-                    pendingProposals.clear();
+                if (log){
+                            file << "sent value" << std::endl;
+                        }
+                simtime_t someDelay = 0.01; // Un ritardo di 0.01 unità di tempo di simulazione
+                simtime_t nextTime = simTime();
+                for (int i = 0; i < pendingProposals.size(); i++) {
+                    scheduleAt(nextTime, pendingProposals[i].dup());
+                    nextTime += someDelay; // someDelay è un ritardo che puoi definire
                 }
             } else {
                 if (log){
@@ -594,7 +606,9 @@ void process::finish()
                 }
             }
              if (network->par("seed").intValue() == network->par("numExperiments").intValue()){
-                 command << "python3 scripts/analyze_multiple_runs.py " << "merged true";
+                 command.str("");
+                 command.clear();
+                 command << "python3 scripts/analyze_multiple_runs.py " << "merged";
                  int result = system(command.str().c_str());
              }
 
