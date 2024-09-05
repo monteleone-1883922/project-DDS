@@ -19,7 +19,7 @@ def merge_results(dir: str, show_results: bool):
     try:
         for file in os.listdir("results/" + dir):
             if file.endswith(".json"):
-                experiments = file[file.find("_"):-20] if experiments == "" else experiments
+                experiments = file[file.find("_")-1:-20] if experiments == "" else experiments
 
                 with open("results/" + dir + "/" + file, 'r') as f:
                     results = json.load(f)

@@ -4,7 +4,7 @@ import sys
 import pdb
 
 
-def merge_results(run_name: str, num_rounds):
+def merge_results(run_name: str, num_rounds: int):
     num_rounds += 1
     next_file_exists = True
     i = 0
