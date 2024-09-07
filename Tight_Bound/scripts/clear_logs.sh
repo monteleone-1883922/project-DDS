@@ -1,0 +1,1 @@
+find ./results -maxdepth 1 -type f -name "*.log" -exec rm -f {} \;
