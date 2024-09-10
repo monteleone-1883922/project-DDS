@@ -11,9 +11,13 @@ def merge_results(dir: str, show_results: bool):
     round_times = []
     infected_round_times = []
     correct_round_times = []
-    cured_round_times = []
     mean_time_all_rounds = []
     rounds_means_times = []
+    proposal_round_times = []
+    collect_round_times = []
+    decide_round_times = []
+    maintain_round_times = []
+
     final_results = {}
 
     try:
@@ -43,13 +47,23 @@ def merge_results(dir: str, show_results: bool):
                     if round:
                         for infected in round["infected"]:
                             infected_round_times.append(round["round_time"][infected])
-                        if "cured" in round:
-                            for cured in round["cured"]:
-                                cured_round_times.append(round["round_time"][cured])
                         correct_round_times.append(round["round_time"][correct_process])
                         round_times += round["round_time"]
                         mean_time_round.append(sum(round["round_time"]) / len(round["round_time"]))
                 mean_time_all_rounds.append(mean_time_round)
+                for j, round in enumerate(results["proposal_rounds"]):
+                    if round:
+                        proposal_round_times += round["proposal_round_time"]
+                for j, round in enumerate(results["collect_rounds"]):
+                    if round:
+                        collect_round_times += round["collect_round_time"]
+                for j, round in enumerate(results["decide_rounds"]):
+                    if round:
+                        decide_round_times += round["decide_round_time"]
+                for j, round in enumerate(results["maintain_rounds"]):
+                    if round:
+                        maintain_round_times += round["maintain_round_time"]
+
 
         file = ''
         tmp_rounds_times = []
@@ -82,11 +96,27 @@ def merge_results(dir: str, show_results: bool):
         final_results["max_correct_round_times"] = np.max(correct_round_times)
         final_results["min_correct_round_times"] = np.min(correct_round_times)
         final_results["var_correct_round_times"] = np.var(correct_round_times)
-        if len(cured_round_times) != 0:
-            final_results["mean_cured_round_times"] = np.mean(cured_round_times)
-            final_results["max_cured_round_times"] = np.max(cured_round_times)
-            final_results["min_cured_round_times"] = np.min(cured_round_times)
-            final_results["var_cured_round_times"] = np.var(cured_round_times)
+
+        final_results["mean_proposal_round_times"] = np.mean(proposal_round_times)
+        final_results["max_proposal_round_times"] = np.max(proposal_round_times)
+        final_results["min_proposal_round_times"] = np.min(proposal_round_times)
+        final_results["var_proposal_round_times"] = np.var(proposal_round_times)
+
+        final_results["mean_collect_round_times"] = np.mean(collect_round_times)
+        final_results["max_collect_round_times"] = np.max(collect_round_times)
+        final_results["min_collect_round_times"] = np.min(collect_round_times)
+        final_results["var_collect_round_times"] = np.var(collect_round_times)
+
+        final_results["mean_decide_round_times"] = np.mean(decide_round_times)
+        final_results["max_decide_round_times"] = np.max(decide_round_times)
+        final_results["min_decide_round_times"] = np.min(decide_round_times)
+        final_results["var_decide_round_times"] = np.var(decide_round_times)
+
+        final_results["mean_maintain_round_times"] = np.mean(maintain_round_times)
+        final_results["max_maintain_round_times"] = np.max(maintain_round_times)
+        final_results["min_maintain_round_times"] = np.min(maintain_round_times)
+        final_results["var_maintain_round_times"] = np.var(maintain_round_times)
+
     except Exception as e:
         with open(f"results/{dir}/errors.txt", 'w') as f:
             f.write(file + '\n')
