@@ -660,7 +660,7 @@ void process::finish()
         file.close();
     }
 
-    /*bool allFilesExist = true;
+    bool allFilesExist = true;
     std::vector<int> nodeIds;
     for (int i = 0; i < numSubmodules; i++) {
         nodeIds.push_back(i);
@@ -679,7 +679,7 @@ void process::finish()
     if (allFilesExist) {
         EV << "process " << getIndex() << ": tutti i file sono stati creati correttamente" << endl;
         std::ostringstream command;
-        command << "python3 scripts/merge_results.py " << runName << " " << round;
+        command << "python3 scripts/merge_results.py " << runName << " " << round << " " << std::to_string(network->par("maxMaintainRounds").intValue());
         int result = system(command.str().c_str());
 
         // Controlla il codice di ritorno
@@ -694,18 +694,18 @@ void process::finish()
                     std::perror(("Errore nella rimozione del file " + otherFilename.str()).c_str());
                 }
             }
-             if (network->par("seed").intValue() == network->par("numExperiments").intValue()){
+             /*if (network->par("seed").intValue() == network->par("numExperiments").intValue()){
                  command.str("");
                  command.clear();
                  command << "python3 scripts/analyze_multiple_runs.py " << "merged";
                  int result = system(command.str().c_str());
-             }
+             }*/
 
         }
         if (result != 0){
             EV << "Errore nell'esecuzione dello script " << command.str() << ", codice di ritorno: " << result << endl;
         }
-    }*/
+    }
 }
 
 

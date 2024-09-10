@@ -5,10 +5,10 @@ import pdb
 
 
 def merge_results(run_name: str, num_rounds: int, maintain_rounds: int):
-    num_rounds += 1
     next_file_exists = True
     i = 0
-    rounds = [{} for i in range(3*num_rounds)]
+    #print("num_rounds = ", num_rounds)
+    rounds = [{} for i in range(3*num_rounds+maintain_rounds)]
     proposal_rounds = [{} for i in range(num_rounds)]
     collect_rounds = [{} for i in range(num_rounds)]
     decide_rounds = [{} for i in range(num_rounds)]
@@ -46,16 +46,16 @@ def merge_results(run_name: str, num_rounds: int, maintain_rounds: int):
                 rounds[j]["infected"] = rounds[j].get("infected", []) + [i]
             if "proposal_round_time" in round:
                 round_time = round["proposal_round_time"]
-                proposal_rounds[j]["proposal_round_time"] = proposal_rounds[j].get("proposal_round_time", []) + [round_time]
+                proposal_rounds[j//3]["proposal_round_time"] = proposal_rounds[j//3].get("proposal_round_time", []) + [round_time]
             elif "collect_round_time" in round:
                 round_time = round["collect_round_time"]
-                collect_rounds[j]["collect_round_time"] = collect_rounds[j].get("collect_round_time", []) + [round_time]
+                collect_rounds[j//3]["collect_round_time"] = collect_rounds[j//3].get("collect_round_time", []) + [round_time]
             elif "decide_round_time" in round:
                 round_time = round["decide_round_time"]
-                decide_rounds[j]["decide_round_time"] = decide_rounds[j].get("decide_round_time", []) + [round_time]
+                decide_rounds[j//3]["decide_round_time"] = decide_rounds[j//3].get("decide_round_time", []) + [round_time]
             else:
                 round_time = round["maintain_round_time"]
-                maintain_rounds[j]["maintain_round_time"] = maintain_rounds[j].get("maintain_round_time", []) + [round_time]
+                maintain_rounds[j-3*num_rounds]["maintain_round_time"] = maintain_rounds[j-3*num_rounds].get("maintain_round_time", []) + [round_time]
 
             rounds[j]["round_time"] = rounds[j].get("round_time", []) + [round_time]
         if len(rounds) != num_rounds:
