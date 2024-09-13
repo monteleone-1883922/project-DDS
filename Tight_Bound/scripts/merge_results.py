@@ -5,6 +5,7 @@ import pdb
 
 
 def merge_results(run_name: str, num_rounds: int, maintain_rounds: int):
+    num_rounds += 1
     next_file_exists = True
     i = 0
     #print("num_rounds = ", num_rounds)
@@ -42,6 +43,8 @@ def merge_results(run_name: str, num_rounds: int, maintain_rounds: int):
                 f.write(str(num_rounds) + "\n")
                 f.write(str(len(results["rounds"])) + "\n")
         for j, round in enumerate(results["rounds"]):
+            #print("numRounds = ", num_rounds)
+          #  print("j = ", j)
             if round["infected"]:
                 rounds[j]["infected"] = rounds[j].get("infected", []) + [i]
             if "proposal_round_time" in round:
@@ -56,7 +59,8 @@ def merge_results(run_name: str, num_rounds: int, maintain_rounds: int):
             else:
                 round_time = round["maintain_round_time"]
                 maintain_rounds[j-3*num_rounds]["maintain_round_time"] = maintain_rounds[j-3*num_rounds].get("maintain_round_time", []) + [round_time]
-
+            
+            
             rounds[j]["round_time"] = rounds[j].get("round_time", []) + [round_time]
         if len(rounds) != num_rounds:
             with open("results/error.txt", 'a') as f:

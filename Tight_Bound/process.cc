@@ -47,8 +47,10 @@ private:
     json roundJson;
     std::string runName;
     bool all_decided = 0;
-    int infecctionSpeed;
+    int infectionSpeed;
     int microRounds = 0;
+    std::vector<int> infectedProposals;
+    int finishedRounds = -12;
 
 protected:
     virtual void initialize() override;
@@ -169,7 +171,7 @@ int process::canDecide(int minNumber, int *list) {
 
 bool process::decisionTaken(std::vector<int> *processes, int numInfected,int *array, int decidedVal){
     int counter = 0;
-    for (int i = 0; i < processes->size(); i++) {
+    for (int i = 0; i < numSubmodules; i++) {
         if (array[i] == decidedVal){
             int add = 1;
             for (int j = 0; j < numInfected; j++) {
@@ -223,6 +225,9 @@ void process::propose(int v,int numProcesses, bool infected, int microRounds) {
 
         msg->setSender(getIndex());
         if (i == numSubmodules - 1) {
+            if (getIndex() == 0){
+                EV << "0 sending propose to " << i << std::endl;
+            }
             scheduleAt(simTime(), msg);
         } else {
             send(msg, "gate$o", i);
@@ -282,7 +287,7 @@ void process::initialize() {
 
     network = getModuleByPath("Topology");
     numSubmodules = network->getSubmoduleVectorSize("process");
-
+    system("./scripts/clear_logs.sh");
 
     std::uniform_int_distribution<int> distribution(0, numSubmodules-1);
     logFile = "results/process_" + std::to_string(getIndex()) + ".log";
@@ -296,7 +301,7 @@ void process::initialize() {
     RV = createAndInitArray(numSubmodules);
     Ev = createAndInit2dArray(numSubmodules);
     result = new int[numSubmodules]();
-    infecctionSpeed = network->par("infectionSpeed").intValue();
+    infectionSpeed = network->par("infectionSpeed").intValue();
     log = network->par("logs");
     infectionRng.seed(network->par("seed"));
     indexCorrectProcess = distribution(infectionRng);
@@ -310,18 +315,21 @@ void process::initialize() {
         file << "I choose " << myNum << std::endl;
         file << "PROPOSE PHASE -------------------------------------------------" << std::endl;
     }
-    if (indexCorrectProcess == getIndex()) {
-        results["correct_process"] = indexCorrectProcess;
-        results["num_infected"] = numInfected;
-        results["num_processes"] = numSubmodules;
 
-    }
+    results["correct_process"] = indexCorrectProcess;
+    results["num_infected"] = numInfected;
+    results["num_processes"] = numSubmodules;
+
+
 
 
     file << "generating infections microround " << microRounds << std::endl;
     infected.push_back(generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log));
     roundJson["infected"] = static_cast<bool>(infected[microRounds]);
     roundStartTime = simTime();
+    for (int i = 0; i < numInfected; i++) {
+        infectedProposals.push_back(infectableProcesses[i]);
+    }
     propose(myNum,numSubmodules,infected[microRounds], microRounds);
     file.close();
 
@@ -331,17 +339,33 @@ void process::handleMessage(cMessage *msg) {
     std::ofstream file(logFile, std::ios::app);
     if (dynamic_cast<ProposalMsg*>(msg)) {
 
+        if (getIndex() == 2 && s > 0){
+
+            int df = 9;
+        }
+
+
         ProposalMsg *my_msg = check_and_cast<ProposalMsg*>(msg);
-        if (my_msg->getMicroRounds() != microRounds && microRounds % infecctionSpeed == 0 && infected.size() <= microRounds) {
+        if (getIndex() == 0){
+                EV << "0 num receivedPV = " << receivedPV << " from " << my_msg->getSender() << " val = " << my_msg->getValue() << std::endl;
+                EV << "0 microround = " << microRounds << " received microrounds = " << my_msg->getMicroRounds() << std::endl;
+            }
+        if (my_msg->getMicroRounds() != microRounds && (microRounds % infectionSpeed) == 0 && static_cast<int>(infected.size()) <= my_msg->getMicroRounds()) {
             if (log){
-                file << "generating infections microround " << microRounds << std::endl;
+                file << "generating infections microround " << my_msg->getMicroRounds() << std::endl;
             }
             infected.push_back(generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log));
+            for (int i = 0; i < numInfected; i++) {
+                infectedProposals.push_back(infectableProcesses[i]);
+            }
         }
-        if (!infected[my_msg->getMicroRounds()]){
+        if (!static_cast<bool>(infected.at(my_msg->getMicroRounds()))){
             PV[my_msg->getSender()] = my_msg->getValue();
         }
         else {
+            if (getIndex() == 0){
+                EV << "RICEVO PROPOSTE E SONO INFETTO " << microRounds << std::endl;
+            }
             check_PV[my_msg->getSender()] = my_msg->getValue();
             PV[my_msg->getSender()] = intuniform(-1,1);
         }
@@ -349,17 +373,25 @@ void process::handleMessage(cMessage *msg) {
         WATCH(receivedPV);
 
         if (receivedPV == numSubmodules) {
+            if (getIndex() == 2 && s == 2){
+                        int df = 9;
+                    }
             printVector(getIndex(), PV, "PV of process " + std::to_string(getIndex()) + " = ", numSubmodules);
             if (log){
                 file << "received proposals = ";
                 logVector(file,PV,numSubmodules);
+                if(infected.at(my_msg->getMicroRounds())){
+                    file << "true proposals = ";
+                    logVector(file,check_PV,numSubmodules);
+                }
             }
             EV << "Ho ricevuto tutte le proposte \n";
             decided = -1;
-            if (infected[my_msg->getMicroRounds()]){
+            if (static_cast<bool>(infected.at(my_msg->getMicroRounds()))){
                 int myNumCheck = canDecide(numSubmodules - 2 * numInfected, check_PV);
                 if (myNumCheck != -1) {
-                    all_decided = decisionTaken(&infectableProcesses,numInfected,check_PV,myNumCheck);
+                    all_decided = decisionTaken(&infectedProposals,numInfected,check_PV,myNumCheck);
+
                     if (all_decided){
                         results["rounds_to_decide"] = s;
                         EV <<  getIndex() << " Decision taken at round " << s << " decided value " << myNum << " ---------------------------------------"<< std::endl;
@@ -371,9 +403,11 @@ void process::handleMessage(cMessage *msg) {
                 }
             }
             myNum = canDecide(numSubmodules - 2 * numInfected, PV);
-            if (myNum != -1) {
-                all_decided = decisionTaken(&infectableProcesses,numInfected,PV,myNum);
-                if (all_decided && !infected[my_msg->getMicroRounds()]){
+            if (myNum != -1 && !static_cast<bool>(infected.at(my_msg->getMicroRounds()))) {
+
+                all_decided = decisionTaken(&infectedProposals,numInfected,PV,myNum);
+
+                if (all_decided && !static_cast<bool>(infected.at(my_msg->getMicroRounds()))){
                     results["rounds_to_decide"] = s;
                     EV <<  getIndex() << " Decision taken at round " << s << " decided value " << myNum << " ---------------------------------------"<< std::endl;
                     if (log){
@@ -382,6 +416,7 @@ void process::handleMessage(cMessage *msg) {
                     }
                 }
             }
+            infectedProposals.clear();
             if (log){
                 file << "my value now is " << myNum << std::endl;
             }
@@ -390,7 +425,7 @@ void process::handleMessage(cMessage *msg) {
                 file << "COLLECT PHASE -------------------------------------------------" << std::endl;
             }
             microRounds++;
-            if (microRounds % infecctionSpeed == 0 && infected.size() <= microRounds) {
+            if ((microRounds % infectionSpeed) == 0 && static_cast<int>(infected.size()) <= microRounds) {
                 if (log){
                     file << "generating infections microround " << microRounds << std::endl;
                 }
@@ -399,22 +434,25 @@ void process::handleMessage(cMessage *msg) {
             roundJson["proposal_round_time"] = (simTime() - roundStartTime).dbl();
             rounds.push_back(roundJson);
             roundJson.clear();
-            roundJson["infected"] = static_cast<bool>(infected[microRounds]);
+            roundJson["infected"] = static_cast<bool>(infected.at(microRounds));
             roundStartTime = simTime();
             initArray(SV,numSubmodules);
-            collect(myNum,numSubmodules,infected[microRounds], microRounds);
+            collect(myNum,numSubmodules,static_cast<bool>(infected.at(microRounds)), microRounds);
         }
     }
 
     else if (dynamic_cast<CollectMsg*>(msg)) {
         CollectMsg *cMsg = check_and_cast<CollectMsg*>(msg);
-        if (cMsg->getMicroRounds() != microRounds && microRounds % infecctionSpeed == 0 && infected.size() <= microRounds) {
+        if (cMsg->getMicroRounds() != microRounds && (microRounds % infectionSpeed) == 0 && static_cast<int>(infected.size()) <= cMsg->getMicroRounds()) {
             if (log){
-                file << "generating infections microround " << microRounds << std::endl;
+                file << "generating infections microround " << cMsg->getMicroRounds() << std::endl;
             }
             infected.push_back(generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log));
         }
-        if (!infected[cMsg->getMicroRounds()]){
+        if (getIndex() == 0){
+            EV << "0 collected " << receivedSV << " values" << std::endl;
+        }
+        if (!static_cast<bool>(infected.at(cMsg->getMicroRounds()))){
             SV[cMsg->getSender()] = cMsg->getValue();
         }
         else {
@@ -433,7 +471,7 @@ void process::handleMessage(cMessage *msg) {
                 file << "DECIDE PHASE -------------------------------------------------" << std::endl;
             }
             microRounds++;
-            if (microRounds % infecctionSpeed == 0 && infected.size() <= microRounds) {
+            if (microRounds % infectionSpeed == 0 && static_cast<int>(infected.size()) <= microRounds) {
                 if (log){
                     file << "generating infections microround " << microRounds << std::endl;
                 }
@@ -445,9 +483,9 @@ void process::handleMessage(cMessage *msg) {
             roundJson["collect_round_time"] = (simTime() - roundStartTime).dbl();
             rounds.push_back(roundJson);
             roundJson.clear();
-            roundJson["infected"] = static_cast<bool>(infected[microRounds]);
+            roundJson["infected"] = static_cast<bool>(infected.at(microRounds));
             roundStartTime = simTime();
-            decide(myNum, SV,numSubmodules,infected[microRounds], microRounds);
+            decide(myNum, SV,numSubmodules,static_cast<bool>(infected.at(microRounds)), microRounds);
         }
 
     }
@@ -458,15 +496,15 @@ void process::handleMessage(cMessage *msg) {
         receivedEv++;
         WATCH(receivedEv);
         int sender = myMsg->getSender();
-        if (myMsg->getMicroRounds() != microRounds && microRounds % infecctionSpeed == 0 && infected.size() <= microRounds) {
+        if (myMsg->getMicroRounds() != microRounds && (microRounds % infectionSpeed) == 0 && static_cast<int>(infected.size()) <= myMsg->getMicroRounds()) {
             if (log){
-                file << "generating infections microround " << microRounds << std::endl;
+                file << "generating infections microround " << myMsg->getMicroRounds() << std::endl;
             }
             infected.push_back(generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log));
         }
         for (int i = 0; i < numSubmodules; i++) {
             int element;
-            if (!infected[myMsg->getMicroRounds()]){
+            if (!static_cast<bool>(infected.at(myMsg->getMicroRounds()))){
                 element = myMsg->getData(i);
             }
             else {
@@ -532,25 +570,29 @@ void process::handleMessage(cMessage *msg) {
             }
 
             microRounds++;
-            if (microRounds % infecctionSpeed == 0 && infected.size() <= microRounds) {
+            if ((microRounds % infectionSpeed) == 0 && static_cast<int>(infected.size()) <= microRounds) {
                 if (log){
                     file << "generating infections microround " << microRounds << std::endl;
                 }
                 infected.push_back(generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log));
+                for (int i = 0; i < numInfected; i++) {
+                    infectedProposals.push_back(infectableProcesses[i]);
+                }
             }
             if (s == numSubmodules || all_decided) {
+                EV << getIndex() << " maintaining, s= " << s << " num submodules = " << numSubmodules << " all decided = " << all_decided << std::endl;
                 decided = myNum;
                 if (log) {
                     file << "MAINTAIN PHASE -------------------------------------------------" << std::endl;
                 }
                 infectableProcesses.push_back(indexCorrectProcess);
-
                 roundJson["decide_round_time"] = (simTime() - roundStartTime).dbl();
                 rounds.push_back(roundJson);
                 roundJson.clear();
-                roundJson["infected"] = static_cast<bool>(infected[microRounds]);
+                roundJson["infected"] = static_cast<bool>(infected.at(microRounds));
                 roundStartTime = simTime();
-                maintain(decided,numSubmodules,infected[microRounds], microRounds );
+                finishedRounds = s;
+                maintain(decided,numSubmodules,static_cast<bool>(infected.at(microRounds)), microRounds );
             } else {
                 if (log){
                     file << "PROPOSE PHASE -------------------------------------------------" << std::endl;
@@ -558,9 +600,9 @@ void process::handleMessage(cMessage *msg) {
                 roundJson["decide_round_time"] = (simTime() - roundStartTime).dbl();
                 rounds.push_back(roundJson);
                 roundJson.clear();
-                roundJson["infected"] = static_cast<bool>(infected[microRounds]);
+                roundJson["infected"] = static_cast<bool>(infected.at(microRounds));
                 roundStartTime = simTime();
-                propose(myNum,numSubmodules,infected[microRounds], microRounds);
+                propose(myNum,numSubmodules,static_cast<bool>(infected.at(microRounds)), microRounds);
             }
         }
     }
@@ -568,13 +610,13 @@ void process::handleMessage(cMessage *msg) {
     else if (dynamic_cast<Maintain*>(msg)) {
         Maintain *my_msg = check_and_cast<Maintain*>(msg);
 
-        if (my_msg->getMicroRounds() != microRounds && microRounds % infecctionSpeed == 0 && infected.size() <= microRounds) {
+        if (my_msg->getMicroRounds() != microRounds && (microRounds % infectionSpeed) == 0 && static_cast<int>(infected.size()) <= my_msg->getMicroRounds()) {
             if (log){
-                file << "generating infections microround " << microRounds << std::endl;
+                file << "generating infections microround " << my_msg->getMicroRounds() << std::endl;
             }
             infected.push_back(generateInfections(&infectableProcesses,numInfected, getIndex(),&infectionRng,file,log));
         }
-        if (!infected[my_msg->getMicroRounds()]){
+        if (!static_cast<bool>(infected.at(my_msg->getMicroRounds()))){
             result[my_msg->getSender()] = my_msg->getFinalDecision();
         }
         else {
@@ -598,7 +640,7 @@ void process::handleMessage(cMessage *msg) {
                     file << "MAINTAIN PHASE -------------------------------------------------" << std::endl;
                 }
                 microRounds++;
-                if (microRounds % infecctionSpeed == 0 && infected.size() <= microRounds) {
+                if (microRounds % infectionSpeed == 0 && static_cast<int>(infected.size()) <= microRounds) {
                     if (log){
                         file << "generating infections microround " << microRounds << std::endl;
                     }
@@ -607,9 +649,9 @@ void process::handleMessage(cMessage *msg) {
                 roundJson["maintain_round_time"] = (simTime() - roundStartTime).dbl();
                 rounds.push_back(roundJson);
                 roundJson.clear();
-                roundJson["infected"] = static_cast<bool>(infected[microRounds]);
+                roundJson["infected"] = static_cast<bool>(infected.at(microRounds));
                 roundStartTime = simTime();
-                maintain(decided,numSubmodules,infected[microRounds], microRounds);
+                maintain(decided,numSubmodules,static_cast<bool>(infected.at(microRounds)), microRounds);
                 maintainRounds++;
             }
             else{
@@ -679,7 +721,7 @@ void process::finish()
     if (allFilesExist) {
         EV << "process " << getIndex() << ": tutti i file sono stati creati correttamente" << endl;
         std::ostringstream command;
-        command << "python3 scripts/merge_results.py " << runName << " " << round << " " << std::to_string(network->par("maxMaintainRounds").intValue());
+        command << "python3 scripts/merge_results.py " << runName << " " << finishedRounds << " " << std::to_string(network->par("maxMaintainRounds").intValue());
         int result = system(command.str().c_str());
 
         // Controlla il codice di ritorno
@@ -694,12 +736,12 @@ void process::finish()
                     std::perror(("Errore nella rimozione del file " + otherFilename.str()).c_str());
                 }
             }
-             /*if (network->par("seed").intValue() == network->par("numExperiments").intValue()){
+             if (network->par("seed").intValue() == network->par("numExperiments").intValue()){
                  command.str("");
                  command.clear();
                  command << "python3 scripts/analyze_multiple_runs.py " << "merged";
                  int result = system(command.str().c_str());
-             }*/
+             }
 
         }
         if (result != 0){
